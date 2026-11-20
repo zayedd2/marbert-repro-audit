@@ -1,0 +1,17 @@
+% Stand-alone preview of the Experiments and Results section, approximating the ACL layout
+% (A4, 11pt, two columns). In the group report, just \input{experiments_results} instead.
+%   real results:      latexmk -pdf preview.tex
+%   synthetic preview: pdflatex "\def\gendir{../results_synthetic/generated}\input{preview}"
+\documentclass[11pt,twocolumn]{article}
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm,columnsep=0.6cm]{geometry}
+\usepackage{times}
+\usepackage{booktabs,multirow,graphicx,url}
+\usepackage[hidelinks]{hyperref}
+\providecommand{\gendir}{generated}
+\begin{document}
+\section{Methodology (placeholder, M2)}\label{sec:method}
+\section{Discussion (placeholder, M3)}\label{sec:discussion}
+\input{experiments_results}
+\appendix
+\input{appendix_results}
+\end{document}

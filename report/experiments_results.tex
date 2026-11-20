@@ -1,0 +1,186 @@
+% =====================================================================================
+% Experiments and Results  (Member 4)            AI504 Assignment 2 - ACL format
+% -------------------------------------------------------------------------------------
+% Every number below is a macro from \gendir/numbers.tex, written by
+% scripts/make_report_assets.py from the saved predictions. Do NOT type numbers by hand:
+% re-run the script and recompile. Tables and figures come from the same script.
+% This section reports OBSERVATIONS only; explanations belong in the Discussion (M3).
+% Needs: booktabs, multirow, graphicx (all standard in the ACL template).
+% Label names to align with the rest of the report: sec:method (M2), sec:discussion (M3),
+% sec:related (M1). Repository: https://github.com/zayedd2/marbert-repro-audit
+% =====================================================================================
+\providecommand{\gendir}{generated}
+\providecommand{\fillin}[1]{\textbf{[TO DO: #1]}}
+\input{\gendir/numbers}
+
+\section{Experiments and Results}
+\label{sec:results}
+
+All scores in this section come from our public repository (\url{https://github.com/zayedd2/marbert-repro-audit}, commit \texttt{\rsGitCommit}).
+Every run saves its dev and test predictions for all 25 epochs, and one script rebuilds every
+table, figure and number here from those files. The section can therefore be checked and
+regenerated without retraining. We report observations only. Possible explanations are discussed
+in Section~\ref{sec:discussion}.
+
+\subsection{Setup}
+\label{sec:results-setup}
+
+\paragraph{Runs.} We fine-tune MARBERT and AraBERT on three datasets with \rsNSeeds{} seeds
+(\rsSeeds{}) under two protocols, giving \rsNRunsExpected{} runs; \rsNRunsDone{} completed. All runs
+use the settings in Section~\ref{sec:method}. Training used \rsGPU{} and took
+\rsGPUHours{} GPU-hours in total.
+
+\paragraph{Protocols.} The \emph{historical} protocol follows [1]. It trains on the full training sets
+(\rsNTrainHistArSarc{}, \rsNTrainHistAstd{} and \rsNTrainHistAjgt{} items for ArSarcasm-Sent, ASTD and
+AJGT), scores the test set after every epoch and keeps the epoch with the best published metric on test.
+The \emph{independent} protocol holds out a stratified \rsDevPct\% dev subset of each training set
+(\rsNDevArSarc{}, \rsNDevAstd{} and \rsNDevAjgt{} items). The same subset is used for every model and
+seed. It keeps the epoch with the best dev macro-F1, and the test set never influences selection.
+Ties go to the earlier epoch. All metrics for a run are read from the same selected checkpoint.
+Test sets are fixed (\rsNTestArSarc{}, \rsNTestAstd{} and \rsNTestAjgt{} items).
+
+\paragraph{Uncertainty.} We keep two sources of uncertainty apart. \emph{Training randomness} is the
+mean $\pm$ sample SD over seeds. Each MARBERT seed is paired with the AraBERT run of the same seed.
+\emph{Finite-test uncertainty} is a 95\% paired percentile bootstrap over test items with \rsBootB{}
+resamples. Each resample is applied to both models and all seeds, and we bootstrap the seed-averaged
+difference. Following our proposal, a target counts as \emph{reproduced} if (i)~the gap to the
+published score is at most \rsGapThreshold{}~pp, or the published score lies inside our seed range,
+and (ii)~MARBERT still outscores AraBERT on that dataset.
+
+\subsection{RQ1: Reproduction under the historical protocol}
+\label{sec:results-rq1}
+
+\begin{table}[t]
+\centering\footnotesize\setlength{\tabcolsep}{3.5pt}
+\input{\gendir/tab_reproduction}
+\caption{\rsSyntheticBanner Historical protocol (best epoch on test): our mean $\pm$ SD over \rsNSeeds{}
+seeds (Ours) against the published scores of [1]. Gap = ours $-$ published, in pp. Reproduced = criterion in
+Section~\ref{sec:results-setup}.}
+\label{tab:reproduction}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{\gendir/fig_reproduction}
+\caption{\rsSyntheticBanner Historical-protocol scores per seed (markers) and their mean (bar) against the
+published score of [1] (diamond). Each panel uses the dataset's published metric.}
+\label{fig:reproduction}
+\end{figure}
+
+\rsNReproduced{} of the \rsNTargets{} published targets meet the reproduction criterion
+(Table~\ref{tab:reproduction}, Figure~\ref{fig:reproduction}). The largest absolute gap is
+\rsMaxAbsGap{}~pp. On ArSarcasm-Sent, MARBERT reaches \rsHistScoreArSarcMarbert{} F1-PN against a
+published \rsPubArSarcMarbert{} (gap \rsGapArSarcMarbert{}~pp). AraBERT reaches \rsHistScoreArSarcArabert{}
+against \rsPubArSarcArabert{} (\rsGapArSarcArabert{}~pp). On ASTD the gaps are \rsGapAstdMarbert{}~pp
+for MARBERT and \rsGapAstdArabert{}~pp for AraBERT. On AJGT they are \rsGapAjgtMarbert{} and
+\rsGapAjgtArabert{}~pp in accuracy. The MARBERT $>$ AraBERT ranking \rsRankHistArSarc{} on
+ArSarcasm-Sent, \rsRankHistAstd{} on ASTD and \rsRankHistAjgt{} on AJGT.
+\fillin{M2: for any target marked No, list the checks of data, metric, preprocessing and checkpoint
+selection made before attributing the gap to the model, with the logged departures that may contribute
+(e.g.\ the AraBERT release, the AJGT split of 360 rather than 361 test items).}
+
+\subsection{Main result: independent evaluation}
+\label{sec:results-main}
+
+\begin{table}[t]
+\centering\footnotesize\setlength{\tabcolsep}{3pt}
+\input{\gendir/tab_independent}
+\caption{\rsSyntheticBanner Main result. Independent protocol (checkpoint chosen on dev macro-F1),
+test scores as mean $\pm$ SD over seeds. The published metric is F1-PN for ArSarc and ASTD and accuracy
+for AJGT (the metrics reported in [1]). Macro-F1 is three-class for ArSarc and ASTD and two-class for AJGT.
+Epochs = dev-selected epoch for each seed.}
+\label{tab:independent}
+\end{table}
+
+Table~\ref{tab:independent} gives the main result. With dev-selected checkpoints, MARBERT scores
+\rsIndHmArSarcMarbert{} F1-PN on ArSarcasm-Sent, against \rsIndHmArSarcArabert{} for AraBERT. On ASTD
+the scores are \rsIndHmAstdMarbert{} and \rsIndHmAstdArabert{} F1-PN. On AJGT they are
+\rsIndHmAjgtMarbert{} and \rsIndHmAjgtArabert{} accuracy. The paired MARBERT $-$ AraBERT
+margins on these published metrics are \rsMarginIndArSarcHm{}, \rsMarginIndAstdHm{} and
+\rsMarginIndAjgtHm{}~pp (Table~\ref{tab:margins}).
+
+\subsection{RQ2: Checkpoint selection}
+\label{sec:results-rq2}
+
+\begin{table*}[t]
+\centering\footnotesize
+\input{\gendir/tab_checkpoint}
+\caption{\rsSyntheticBanner Checkpoint diagnostic on the independent runs. Dev-sel.\ = test score of the
+dev-selected epoch; Max = best test score over all 25 epochs of the same run; Gap = Max $-$ Dev-sel.\ per
+run, mean $\pm$ SD over seeds (pp). The maximum is chosen after seeing test data, so it is
+retrospective, not an unbiased estimate.}
+\label{tab:checkpoint}
+\end{table*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{\gendir/fig_learning_curves}
+\caption{\rsSyntheticBanner Independent runs: test (solid; band = range over seeds) and dev (dashed)
+macro-F1 by epoch. Markers show the test score at each seed's dev-selected epoch.}
+\label{fig:curves}
+\end{figure*}
+
+Table~\ref{tab:checkpoint} and Figure~\ref{fig:curves} compare the dev-selected checkpoint with the
+best test epoch of the same run. Within each independent run, the best test score over the 25 epochs exceeds
+the test score of the dev-selected epoch by \rsCkptGapAllMf{}~pp macro-F1 on average (maximum
+\rsCkptGapAllMaxMf{}~pp). Under the published metrics the average is \rsCkptGapAllHm{}~pp (maximum
+\rsCkptGapAllMaxHm{}~pp). The dev-selected epoch is also the best test epoch in \rsCkptSameEpoch{} runs.
+For MARBERT the average macro-F1 gap is \rsCkptGapArSarcMarbertMf{}, \rsCkptGapAstdMarbertMf{} and
+\rsCkptGapAjgtMarbertMf{}~pp on ArSarcasm-Sent, ASTD and AJGT. For AraBERT it is
+\rsCkptGapArSarcArabertMf{}, \rsCkptGapAstdArabertMf{} and \rsCkptGapAjgtArabertMf{}~pp.
+The gap is non-negative by construction. It measures how much best-on-test selection can add to a
+reported score, not how good a model is.
+
+\subsection{RQ3: Reliability of the margin}
+\label{sec:results-rq3}
+
+\begin{table*}[t]
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\input{\gendir/tab_margins}
+\caption{\rsSyntheticBanner MARBERT $-$ AraBERT in pp. $\Delta$ (SD) = mean and SD of the per-seed paired
+differences (training randomness); 95\% CI = paired bootstrap over test items, \rsBootB{} resamples
+(finite-test uncertainty); Wins = seeds in which MARBERT scores higher. Rank flip = whether the ranking
+differs between the two metrics. Historical-protocol CIs ignore that the epoch was chosen on test and
+are shown for reference only.}
+\label{tab:margins}
+\end{table*}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{\gendir/fig_margins}
+\caption{\rsSyntheticBanner MARBERT $-$ AraBERT margin per dataset and metric: mean over seeds (circle),
+individual seed pairs (ticks) and 95\% paired bootstrap interval (line). Filled = independent protocol,
+open = historical. The dotted line marks no difference.}
+\label{fig:margins}
+\end{figure}
+
+Table~\ref{tab:margins} and Figure~\ref{fig:margins} set the margin against both sources of
+uncertainty. Under the independent protocol and on the published metrics, the margins are
+\rsMarginIndArSarcHm{}~pp on ArSarcasm-Sent (seed SD \rsMarginSDIndArSarcHm{}; 95\% CI
+\rsMarginCIIndArSarcHm{}), \rsMarginIndAstdHm{}~pp on ASTD (SD \rsMarginSDIndAstdHm{}; CI
+\rsMarginCIIndAstdHm{}) and \rsMarginIndAjgtHm{}~pp on AJGT (SD \rsMarginSDIndAjgtHm{}; CI
+\rsMarginCIIndAjgtHm{}). MARBERT outscores AraBERT in \rsMarginWinsIndArSarcHm{},
+\rsMarginWinsIndAstdHm{} and \rsMarginWinsIndAjgtHm{} seed pairs. Across the six
+dataset--metric pairs of the independent protocol, the bootstrap interval excludes zero in
+\rsNCIExclZeroInd{}. The largest ratio of seed SD to the size of the margin is \rsMaxSDRatioInd{}.
+
+\subsection{RQ4: Metric choice}
+\label{sec:results-rq4}
+
+Replacing the published metric with macro-F1 \rsRankFlipIndArSarc{} the MARBERT--AraBERT
+ranking on ArSarcasm-Sent. It \rsRankFlipIndAstd{} the ranking on ASTD and \rsRankFlipIndAjgt{} it on
+AJGT. These are independent-protocol results: \rsNRankFlipInd{} of three rankings change, and
+\rsNRankFlipHist{} of three change under the historical protocol. The independent-protocol margin
+moves from \rsMarginIndArSarcHm{} to \rsMarginIndArSarcMf{}~pp on ArSarcasm-Sent, from
+\rsMarginIndAstdHm{} to \rsMarginIndAstdMf{}~pp on ASTD and from \rsMarginIndAjgtHm{} to
+\rsMarginIndAjgtMf{}~pp on AJGT (Table~\ref{tab:margins}). Per-class precision, recall and F1 are in
+Table~\ref{tab:perclass}.
+
+\subsection{Error analysis}
+\label{sec:results-errors}
+
+Figure~\ref{fig:confusion} shows the confusion matrices of the dev-selected checkpoints, summed over
+seeds. Table~\ref{tab:subgroups} breaks ArSarcasm-Sent down by the dataset's existing dialect and sarcasm
+labels. Groups with fewer than 50 test items (marked $\dagger$) are exploratory.
+\fillin{M1: two or three observations with counts, e.g.\ which confusion dominates, and how the
+sarcastic subset and the smaller dialect groups compare with the full test set.}

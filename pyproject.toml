@@ -1,0 +1,11 @@
+[project]
+name = "marbert-repro-audit"
+version = "1.0.0"
+description = "Reproducibility and controlled evaluation audit of MARBERT vs AraBERT for Arabic sentiment (AI504 Assignment 2)"
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "scripts"]
+testpaths = ["tests"]

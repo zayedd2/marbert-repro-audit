@@ -1,0 +1,16 @@
+historical:
+  display_name: Historical
+  description: >
+    The paper's protocol (audit item 1). Train on the full training set, score the test set after every epoch,
+    and report the best test epoch under the published metric. This uses test data for selection, so it is
+    reported only as a labelled comparison with [1].
+  use_dev_split: false
+  selection: {split: test, metric: historical}
+
+independent:
+  display_name: Independent
+  description: >
+    Main result (audit item 2). Hold out a stratified 10% dev subset of the training set, choose the checkpoint
+    on dev macro-F1 only, and report the test score of that checkpoint. Test data are never used for selection.
+  use_dev_split: true
+  selection: {split: dev, metric: macro_f1}

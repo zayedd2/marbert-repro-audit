@@ -1,0 +1,25 @@
+# Copy to data/camelsent_sources.yaml and fill in. Paths are relative to this file (or to the repo root).
+# role: train -> merged into the CAMelSent training set (train AND dev splits of every source)
+#       test  -> the held-out ASTD test set (the only test file)
+# Labels are matched case-insensitively against label_map first, then against built-in aliases
+# (pos/neg/neu/positive/negative/neutral). Anything mapped to null is dropped and counted.
+
+label_map:
+  POS: positive
+  NEG: negative
+  NEUTRAL: neutral
+  NEU: neutral
+  OBJ: null        # ASTD "objective" tweets are not part of the 3-class task
+  mixed: null
+
+files:
+  - {source: arsas,       role: train, path: raw/camelsent/arsas_train.tsv,       text_col: text, label_col: label}
+  - {source: arsas,       role: train, path: raw/camelsent/arsas_dev.tsv,         text_col: text, label_col: label}
+  - {source: astd,        role: train, path: raw/camelsent/astd_train.tsv,        text_col: text, label_col: label}
+  - {source: astd,        role: train, path: raw/camelsent/astd_dev.tsv,          text_col: text, label_col: label}
+  - {source: semeval,     role: train, path: raw/camelsent/semeval_train.tsv,     text_col: text, label_col: label}
+  - {source: semeval,     role: train, path: raw/camelsent/semeval_dev.tsv,       text_col: text, label_col: label}
+  - {source: arsentd_lev, role: train, path: raw/camelsent/arsentd_lev_train.tsv, text_col: text, label_col: label}
+  - {source: arsentd_lev, role: train, path: raw/camelsent/arsentd_lev_dev.tsv,   text_col: text, label_col: label}
+  - {source: astd,        role: test,  path: raw/camelsent/astd_test.tsv,         text_col: text, label_col: label}
+# Optional per file: sep (default tab), header: false with columns: [text, label], no_quoting: true

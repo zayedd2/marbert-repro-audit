@@ -1,0 +1,10 @@
+# Each model uses its own tokenizer. The exact Hugging Face commit used is recorded in every run's env.json.
+marbert:
+  display_name: MARBERT
+  hf_id: UBC-NLP/MARBERT          # original release, NOT MARBERTv2
+  revision: main
+arabert:
+  display_name: AraBERT
+  hf_id: aubmindlab/bert-base-arabertv01   # [1] does not name a version; we fix the 2020 base release
+  revision: main
+  note: Possible discrepancy source because [1] does not say which AraBERT release it used.

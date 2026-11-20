@@ -1,0 +1,24 @@
+# raw and processed data are NOT redistributed (licences); split-ID files and the manifest ARE committed
+data/raw/
+data/processed/
+!data/splits/
+# synthetic dry-run outputs (never results)
+data_synthetic/
+results_synthetic/
+# tweet text for qualitative analysis - check the dataset licence before publishing
+results/analysis/
+# checkpoints and caches
+*.pt
+checkpoints/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+# LaTeX build files
+report/*.aux
+report/*.log
+report/*.out
+report/*.fls
+report/*.fdb_latexmk
+report/*.synctex.gz
+report/preview.pdf

@@ -1,0 +1,35 @@
+# Published targets are from [1], Tables 3 and 4. Split sizes are from [1], Table A.1 (no dev split for any of the three).
+arsarcasm:
+  display_name: ArSarcasm-Sent
+  short_name: ArSarc
+  labels: [negative, neutral, positive]
+  positive_label: positive
+  negative_label: negative
+  historical_metric: f1_pn        # mean of positive and negative F1 on the full 3-class test set
+  published: {marbert: 71.50, arabert: 63.50}
+  paper_sizes: {train: 8437, test: 2110}
+  subgroup_columns: [dialect, sarcasm]
+
+astd:
+  display_name: ASTD (3-class)
+  short_name: ASTD
+  labels: [negative, neutral, positive]
+  positive_label: positive
+  negative_label: negative
+  historical_metric: f1_pn
+  published: {marbert: 78.00, arabert: 72.00}
+  paper_sizes: {train: 24800, test: 664}   # train = merged CAMelSent (approx. 24K in [1]); test = held-out ASTD
+  subgroup_columns: []
+  note: Trained on CAMelSent (train + dev of ArSAS, ASTD, SemEval, ArSenTD-LEV); tested on the ASTD test only. Not ASTD-B.
+
+ajgt:
+  display_name: AJGT
+  short_name: AJGT
+  labels: [negative, positive]
+  positive_label: positive
+  negative_label: negative
+  historical_metric: accuracy
+  published: {marbert: 96.11, arabert: 92.22}
+  paper_sizes: {train: 1440, test: 361}    # [1] follows an 80/20 split; the exact split is not public
+  test_fraction: 0.20
+  subgroup_columns: []
