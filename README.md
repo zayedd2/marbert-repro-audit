@@ -100,7 +100,7 @@ results/team_packages/  the team's own result files (Members 1 and 3), used for 
 results/tables, results/figures, results/SUMMARY.md   regenerated outputs
 src/marbert_audit/  metrics · selection · stats (paired bootstrap) · summary · errors · latex · figures · importer
 scripts/            see "How the results were produced"
-report/             experiments_results.tex + appendix_results.tex (table and figure layout for the ACL report), preview.tex
+report/             experiments_results.tex + appendix_results.tex (the ACL section, numbers filled from generated/), preview.tex
 docs/               DEPARTURES.md · PIPELINE_EXPLAINED.md
 tests/              metrics vs scikit-learn, bootstrap, selection and verdict rules, importer tamper test,
                     regression test on the real results, end-to-end synthetic pipeline

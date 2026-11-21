@@ -1,41 +1,44 @@
 % =====================================================================================
-% Experiments and Results (Member 4): LAYOUT AND WRITING SCAFFOLD, not finished text
+% Experiments and Results (Member 4)                         AI504 Assignment 2, ACL format
 % -------------------------------------------------------------------------------------
-% * Tables, figures and every number come from scripts/make_report_assets.py
-%   (\gendir/numbers.tex, \gendir/tab_*.tex, \gendir/fig_*.pdf). Do not type numbers by hand.
-% * Each \fillin{...} lists what a paragraph has to state, with the verified numbers. Replace
-%   it with your own prose.
-% * Report observations here; explanations belong in the Discussion (Member 3).
-% * Label names used: sec:method (Member 2), sec:discussion (Member 3), sec:errors (Member 1).
-% Needs: booktabs, multirow, graphicx (standard in the ACL template).
+% Every number below is a macro from \gendir/numbers.tex, and every table and figure comes from
+% \gendir/, all written by scripts/make_report_assets.py from the saved predictions in results/runs.
+% Do not type numbers by hand: re-run the script and recompile.
+% Observations only; explanations are in the Discussion (Member 3).
+% Labels expected elsewhere in the report: sec:method (Member 2), sec:discussion (Member 3),
+% sec:errors (Member 1). Needs booktabs, multirow, graphicx.
 % =====================================================================================
 \providecommand{\gendir}{generated}
-\providecommand{\fillin}[1]{\par\noindent\fbox{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{\small\textbf{Write:} #1}}\par\smallskip}
 \input{\gendir/numbers}
 
 \section{Experiments and Results}
 \label{sec:results}
 
-\fillin{One or two sentences: all results come from the 36 runs (2 models $\times$ 3 datasets $\times$
-\rsNSeeds{} seeds $\times$ 2 protocols) plus 6 AJGT check runs; every table, figure and number in this section is
-rebuilt from the saved per-epoch predictions in the public repository (github.com/zayedd2/marbert-repro-audit);
-observations only, explanations in Section~\ref{sec:discussion}.}
+All results rest on 36 fine-tuning runs (two models, three datasets, \rsNSeeds{} seeds and two
+protocols), together with six AJGT check runs on the authors' split and six single-seed follow-up runs.
+Every run saved its test predictions, and its dev predictions where a dev set existed, for all 25 epochs.
+One script in our public repository\footnote{\url{https://github.com/zayedd2/marbert-repro-audit}} rebuilds
+every table, figure and number in this section from those files, after re-scoring each saved prediction
+set against the logged metrics. This section reports what we observed;
+Section~\ref{sec:discussion} interprets it.
 
 \subsection{Setup}
 \label{sec:results-setup}
 
-\fillin{Runs and compute: settings as in Section~\ref{sec:method}; seeds \rsSeeds{}; one \rsGPU{} on Colab;
-\rsGPUHours{} GPU-hours in total (ASTD \rsGPUHoursAstd{}, ArSarcasm-Sent \rsGPUHoursArSarc{}, AJGT \rsGPUHoursAjgt{});
-fp16 and dynamic padding as the speed choices.
-Test sets: \rsNTestArSarc{}, \rsNTestAstd{} and \rsNTestAjgt{} tweets. Historical runs train on
-\rsNTrainHistArSarc{}, \rsNTrainHistAstd{} and \rsNTrainHistAjgt{} tweets; independent runs hold out
-\rsNDevArSarc{}, \rsNDevAstd{} and \rsNDevAjgt{} dev tweets.
-Selection: historical = best test epoch by the published metric; independent = best dev epoch by the published
-metric (dev F1-PN, dev accuracy for AJGT); ties to the earlier epoch; all metrics read at that one checkpoint.
-Uncertainty: seed mean $\pm$ SD (training randomness) and a 95\% paired bootstrap over test tweets with
-\rsBootB{} resamples (test-sample randomness), reported separately.
-Reproduction rule from the proposal: gap $\le$ \rsGapThreshold{} points or published score inside the seed range,
-and MARBERT $>$ AraBERT on that dataset.}
+All runs use the settings in Section~\ref{sec:method} on a single \rsGPU{} and took \rsGPUHours{} GPU-hours
+in total, \rsGPUHoursAstd{} of them for ASTD. The test sets hold \rsNTestArSarc{} (ArSarcasm-Sent),
+\rsNTestAstd{} (ASTD) and \rsNTestAjgt{} (AJGT) tweets. Historical runs train on the full training sets
+(\rsNTrainHistArSarc{}, \rsNTrainHistAstd{} and \rsNTrainHistAjgt{} tweets) and keep the epoch with the best
+test score under the published metric, as [1] did. Independent runs hold out \rsNDevArSarc{},
+\rsNDevAstd{} and \rsNDevAjgt{} dev tweets and keep the epoch with the best dev score under the same metric,
+so the test set plays no part in selection. Ties go to the earlier epoch, and all metrics of a run are read
+at its selected checkpoint.
+
+We report training randomness as the mean and standard deviation (SD) over seeds, and test-sample
+randomness as a 95\% paired bootstrap interval over test tweets (\rsBootB{} resamples), always separately.
+Following our proposal, a published score counts as reproduced if our mean is within \rsGapThreshold{}
+points of it or the published score lies inside our seed range, and MARBERT still outscores AraBERT on that
+dataset.
 
 \subsection{RQ1: Reproduction under the historical protocol}
 \label{sec:results-rq1}
@@ -56,20 +59,24 @@ score of [1] (diamond). AJGT-UBC = the authors' AJGT split (check runs).}
 \label{fig:reproduction}
 \end{figure*}
 
-\fillin{Table~\ref{tab:reproduction}, Figure~\ref{fig:reproduction}.
-(1) \rsNReproduced{} of \rsNTargets{} targets meet the rule on our splits, both MARBERT: ArSarcasm-Sent
-\rsHistScoreArSarcMarbert{} vs \rsPubArSarcMarbert{} (gap \rsGapArSarcMarbert{}); AJGT \rsHistScoreAjgtMarbert{} vs
-\rsPubAjgtMarbert{} (gap \rsGapAjgtMarbert{}).
-(2) Not reproduced: AraBERT on ArSarcasm-Sent (gap \rsGapArSarcArabert{}) and ASTD (\rsGapAstdArabert{}); MARBERT
-on ASTD (\rsGapAstdMarbert{}); AraBERT on AJGT (\rsGapAjgtArabert{}). No published score lies inside our seed range
-on our splits.
-(3) AJGT on the authors' split: MARBERT \rsHistScoreAjgtUbcMarbert{} (gap \rsGapAjgtUbcMarbert{}), AraBERT
-\rsHistScoreAjgtUbcArabert{} (gap \rsGapAjgtUbcArabert{}): both reproduced, so 3 of 6 targets with that split.
-(4) MARBERT $>$ AraBERT holds on \rsNRankHoldHist{} of 3 datasets; MARBERT's lowest seed beats AraBERT's highest
-everywhere. Lead: ArSarcasm-Sent \rsMarginHistArSarcHm{} (8.00 in [1]),
-ASTD \rsMarginHistAstdHm{} (6.00), AJGT \rsMarginHistAjgtHm{} (3.89).
-(5) Follow-up runs (Appendix, Table~\ref{tab:sensitivity}): AraBERT version, AraBERT preprocessing, LR schedule
-and LR 2e-5 move F1-PN by at most 1.12 points; AraBERT stays above 63.50.}
+Under the historical protocol, \rsNReproduced{} of the \rsNTargets{} published scores meet the reproduction
+rule on our splits, both of them for MARBERT (Table~\ref{tab:reproduction}, Figure~\ref{fig:reproduction}).
+MARBERT reaches \rsHistScoreArSarcMarbert{} F1-PN on ArSarcasm-Sent against \rsPubArSarcMarbert{} in [1]
+(gap \rsGapArSarcMarbert{}) and \rsHistScoreAjgtMarbert{} accuracy on AJGT against \rsPubAjgtMarbert{}
+(gap \rsGapAjgtMarbert{}). The other four miss it (ours minus [1]): AraBERT by \rsGapArSarcArabert{} points on ArSarcasm-Sent and
+\rsGapAstdArabert{} on ASTD, MARBERT by \rsGapAstdMarbert{} on ASTD, and AraBERT by \rsGapAjgtArabert{}
+on AJGT. No published score falls inside our seed range on these splits.
+
+On the authors' own AJGT split, both scores are reproduced: MARBERT reaches \rsHistScoreAjgtUbcMarbert{}
+(gap \rsGapAjgtUbcMarbert{}) and AraBERT \rsHistScoreAjgtUbcArabert{} (gap \rsGapAjgtUbcArabert{}), with
+both published values inside the seed range.
+
+The ranking holds on all \rsNRankHoldHist{} datasets, and MARBERT's lowest seed beats AraBERT's highest on
+each. The lead is smaller than in [1] on ArSarcasm-Sent (\rsMarginHistArSarcHm{} against 8.00 points) and
+ASTD (\rsMarginHistAstdHm{} against 6.00), and larger on AJGT (\rsMarginHistAjgtHm{} against 3.89). Six
+follow-up runs on ArSarcasm-Sent (Appendix, Table~\ref{tab:sensitivity}) change the AraBERT release, its
+preprocessing, the learning-rate schedule or the learning rate. None moves F1-PN by more than 1.12 points,
+and AraBERT stays at least 4.10 points above its published 63.50.
 
 \subsection{Main result: independent evaluation}
 \label{sec:results-main}
@@ -82,12 +89,12 @@ test scores as mean $\pm$ SD over seeds. Epochs = dev-selected epoch per seed.}
 \label{tab:independent}
 \end{table}
 
-\fillin{Table~\ref{tab:independent}. MARBERT vs AraBERT with dev-selected checkpoints:
-ArSarcasm-Sent \rsIndHmArSarcMarbert{} vs \rsIndHmArSarcArabert{} F1-PN; ASTD \rsIndHmAstdMarbert{} vs
-\rsIndHmAstdArabert{}; AJGT \rsIndHmAjgtMarbert{} vs \rsIndHmAjgtArabert{} accuracy. Paired leads
-\rsMarginIndArSarcHm{}, \rsMarginIndAstdHm{}, \rsMarginIndAjgtHm{}. Macro-F1 in the same table (ASTD:
-\rsIndMfAstdMarbert{} vs \rsIndMfAstdArabert{}). Note that these runs train on 90\% of the data, so compare
-them with the historical runs only through the within-run diagnostic below.}
+With the epoch chosen on dev, MARBERT scores \rsIndHmArSarcMarbert{} F1-PN on ArSarcasm-Sent against
+\rsIndHmArSarcArabert{} for AraBERT, \rsIndHmAstdMarbert{} against \rsIndHmAstdArabert{} on ASTD, and
+\rsIndHmAjgtMarbert{} against \rsIndHmAjgtArabert{} accuracy on AJGT (Table~\ref{tab:independent}). The
+paired leads are \rsMarginIndArSarcHm{}, \rsMarginIndAstdHm{} and \rsMarginIndAjgtHm{} points. These runs
+train on 90\% of the training data, so their absolute scores are not directly comparable with the
+historical runs. The effect of checkpoint selection alone is measured within the same runs below.
 
 \subsection{RQ2: Checkpoint selection}
 \label{sec:results-rq2}
@@ -110,14 +117,17 @@ epoch under the published metric. Markers = test score at each seed's dev-select
 \label{fig:curves}
 \end{figure*}
 
-\fillin{Table~\ref{tab:checkpoint}, Figure~\ref{fig:curves}.
-(1) Optimism of best-on-test over dev selection, same runs: \rsOptimismMin{}--\rsOptimismMax{} points
-(largest: MARBERT on ArSarcasm-Sent). (2) The dev-selected epoch is the best test epoch in \rsCkptSameEpoch{} runs.
-(3) Test selection adds to MARBERT's lead: \rsLeadGainArSarc{} (ArSarcasm-Sent, \rsLeadDevArSarc{} $\to$
-\rsLeadBestArSarc{}), \rsLeadGainAstd{} (ASTD), \rsLeadGainAjgt{} (AJGT).
-(4) Selecting on dev macro-F1 instead (proposal) changes seed means by at most \rsSelRuleMaxMeanChange{} points
-(\rsSelRuleMaxRunChange{} in a single run) and MARBERT still leads everywhere.
-(5) Historical runs: best epoch minus last epoch is \rsBestMinusLastMin{}--\rsBestMinusLastMax{} points.}
+Within each independent run, the best test score over the 25 epochs exceeds the score at the dev-selected
+epoch by \rsOptimismMin{} to \rsOptimismMax{} points on average (Table~\ref{tab:checkpoint}), the largest
+gap being MARBERT's on ArSarcasm-Sent. The dev-selected epoch is also the best test epoch in only
+\rsCkptSameEpoch{} runs, and dev and test peak at different epochs in most runs (Figure~\ref{fig:curves}).
+
+Selecting on test also widens MARBERT's lead. On ArSarcasm-Sent the lead grows from \rsLeadDevArSarc{} to
+\rsLeadBestArSarc{} points (\rsLeadGainArSarc{}), with smaller gains on ASTD (\rsLeadGainAstd{}) and AJGT
+(\rsLeadGainAjgt{}). The proposal planned to select on dev macro-F1 rather than the published metric. Doing
+so changes the seed means by at most \rsSelRuleMaxMeanChange{} points (\rsSelRuleMaxRunChange{} in a single
+run), and MARBERT still leads on every dataset. In the historical runs, the selected epoch scores
+\rsBestMinusLastMin{} to \rsBestMinusLastMax{} points above the final one.
 
 \subsection{RQ3: Seeds and test-sample uncertainty}
 \label{sec:results-rq3}
@@ -141,34 +151,42 @@ on test.}
 \label{fig:margins}
 \end{figure}
 
-\fillin{Table~\ref{tab:margins}, Figure~\ref{fig:margins}.
-(1) Seed SD of the lead (\rsMarginSDIndArSarcHm{}, \rsMarginSDIndAstdHm{}, \rsMarginSDIndAjgtHm{} under the
-independent protocol) is much smaller than the lead itself.
-(2) Bootstrap CIs are wider than the seed spread (independent: ArSarcasm-Sent \rsMarginCIIndArSarcHm{}, ASTD
-\rsMarginCIIndAstdHm{}, AJGT \rsMarginCIIndAjgtHm{}), so the test sample adds more uncertainty than the seeds.
-(3) \rsNPerSeedCIExclZero{} per-seed CIs exclude zero; the two exceptions are both ASTD seed 44 (independent):
-F1-PN and macro-F1, where AraBERT is ahead on macro-F1 (Wins \rsMarginWinsIndAstdMf{}).
-(4) Seed-averaged CIs exclude zero in \rsNCIExclZeroHist{} cells (historical) and \rsNCIExclZeroInd{}
-(independent); the exception is ASTD macro-F1, independent: \rsMarginIndAstdMf{} \rsMarginCIIndAstdMf{}.}
+In the published metrics, training randomness is small next to the lead (Table~\ref{tab:margins},
+Figure~\ref{fig:margins}). Under the independent protocol, the seed SD of the lead is \rsMarginSDIndArSarcHm{}
+points on ArSarcasm-Sent, \rsMarginSDIndAstdHm{} on ASTD and \rsMarginSDIndAjgtHm{} on AJGT, and MARBERT wins
+every seed pair. The exception is ASTD macro-F1, where the seed SD (\rsMarginSDIndAstdMf{}) exceeds the lead
+(\rsMarginIndAstdMf{}).
+
+Test-sample uncertainty is larger. The bootstrap intervals for the seed-averaged lead are
+\rsMarginCIIndArSarcHm{} on ArSarcasm-Sent, \rsMarginCIIndAstdHm{} on ASTD and \rsMarginCIIndAjgtHm{} on
+AJGT. They exclude zero in \rsNCIExclZeroHist{} historical and \rsNCIExclZeroInd{} independent cases; the
+exception is again ASTD macro-F1 under the independent protocol (\rsMarginIndAstdMf{}, CI \rsMarginCIIndAstdMf{}).
+Per seed, \rsNPerSeedCIExclZero{} intervals exclude zero. Both exceptions are ASTD seed 44 under
+the independent protocol, where AraBERT is ahead on macro-F1.
 
 \subsection{RQ4: Metric choice}
 \label{sec:results-rq4}
 
-\fillin{Table~\ref{tab:margins} and Appendix Table~\ref{tab:perclass}.
-(1) The ranking never changes with the metric (rank flips: \rsNRankFlipHist{} historical, \rsNRankFlipInd{}
-independent); the size of the lead does.
-(2) ArSarcasm-Sent, independent: F1-PN lead \rsMarginIndArSarcHm{}, macro-F1 lead \rsMarginIndArSarcMf{}.
-(3) ASTD: F1-PN much higher than macro-F1 (MARBERT \rsIndHmAstdMarbert{} vs \rsIndMfAstdMarbert{}); the neutral
-(mixed) class is the weak one (per-class F1 in Table~\ref{tab:perclass}); the ASTD lead is
-\rsMarginHistAstdHm{} vs \rsMarginHistAstdMf{} (historical) and \rsMarginIndAstdHm{} vs \rsMarginIndAstdMf{}
-(independent).
-(4) AJGT: two balanced classes, so accuracy and macro-F1 give almost the same lead.}
+The ranking never changes with the metric: MARBERT leads under F1-PN, macro-F1 and accuracy on every
+dataset and under both protocols (Table~\ref{tab:margins}). The size of the lead does change. On
+ArSarcasm-Sent the independent lead is \rsMarginIndArSarcHm{} points in F1-PN and \rsMarginIndArSarcMf{} in
+macro-F1.
+
+ASTD shows the largest difference between metrics. MARBERT scores \rsIndHmAstdMarbert{} in F1-PN but
+\rsIndMfAstdMarbert{} in macro-F1, because the neutral (mixed) class, which F1-PN leaves out, reaches only
+\rsPcAstdMarbertNeutral{} F1 for MARBERT and \rsPcAstdArabertNeutral{} for AraBERT (Appendix,
+Table~\ref{tab:perclass}). Under the independent protocol the ASTD lead shrinks from \rsMarginIndAstdHm{}
+points in F1-PN to \rsMarginIndAstdMf{} in macro-F1, whereas under the historical protocol it grows from
+\rsMarginHistAstdHm{} to \rsMarginHistAstdMf{}. On AJGT, with
+two balanced classes, accuracy and macro-F1 give the same lead (\rsMarginIndAjgtHm{} and
+\rsMarginIndAjgtMf{}).
 
 \subsection{Error analysis}
 \label{sec:results-errors}
 
-\fillin{Member 1's error-analysis text goes here (or reference Section~\ref{sec:errors}). Use
-Appendix Table~\ref{tab:subgroups} and Figure~\ref{fig:confusion} so the subgroup numbers carry CIs:
-sarcastic tweets (n = \rsSubNSarc{}) \rsSubIndSarcMf{} \rsSubIndSarcMfCI{} macro-F1, i.e.\ the lead
-\emph{disappears} (CI includes zero), not ``reverses''; non-sarcastic \rsSubIndNonSarcMf{} \rsSubIndNonSarcMfCI{};
-Gulf (n = \rsSubNGulf{}) \rsSubIndGulfMf{} \rsSubIndGulfMfCI{}; Levantine \rsSubIndLevMf{} \rsSubIndLevMfCI{}.}
+Section~\ref{sec:errors} breaks the errors down by dialect and sarcasm; Appendix Table~\ref{tab:subgroups}
+adds paired bootstrap intervals to those subgroup results. Under the independent protocol, MARBERT leads on
+non-sarcastic tweets (\rsSubIndNonSarcMf{} macro-F1, CI \rsSubIndNonSarcMfCI{}) but not on the
+\rsSubNSarc{} sarcastic ones (\rsSubIndSarcMf{}, CI \rsSubIndSarcMfCI{}). The intervals for the small Gulf
+(\rsSubNGulf{} tweets, \rsSubIndGulfMfCI{}) and Levantine groups (\rsSubNLev{} tweets, \rsSubIndLevMfCI{})
+are wide.

@@ -311,7 +311,7 @@ def numbers_tex(runs: pd.DataFrame, repro: pd.DataFrame, indep: pd.DataFrame, hi
         out.append(_macro(f"CkptGapAllMax{kind}", f(vals.max())))
     if not ind_runs.empty:
         same = sum(int(r["selected_epoch"] == r[f"argmax_test_{r['hist_metric']}_epoch"]) for _, r in ind_runs.iterrows())
-        out.append(_macro("CkptSameEpoch", f"{int(same)}/{len(ind_runs)}"))
+        out.append(_macro("CkptSameEpoch", f"{int(same)} of {len(ind_runs)}"))
     else:
         out.append(_macro("CkptSameEpoch", "--"))
 
@@ -337,7 +337,7 @@ def numbers_tex(runs: pd.DataFrame, repro: pd.DataFrame, indep: pd.DataFrame, hi
             v = per_d.get(d)
             out.append(_macro(f"RankFlip{PROT_MACRO[p]}{DS_MACRO[d]}", "--" if v is None or (isinstance(v, float) and math.isnan(v)) else ("changes" if v else "does not change")))
         excl = g.dropna(subset=["diff_mean"]) if "diff_mean" in g else g.iloc[0:0]
-        out.append(_macro(f"NCIExclZero{PROT_MACRO[p]}", f"{int(excl['ci_excludes_zero'].sum())}/{len(excl)}" if len(excl) else "--"))
+        out.append(_macro(f"NCIExclZero{PROT_MACRO[p]}", f"{int(excl['ci_excludes_zero'].sum())} of {len(excl)}" if len(excl) else "--"))
         sd_ratio = excl["sd_over_margin"].replace([np.inf], np.nan).max() if len(excl) else float("nan")
         out.append(_macro(f"MaxSDRatio{PROT_MACRO[p]}", f(sd_ratio)))
     out += _extra_macros(runs, ckpt, extras or {})
@@ -374,7 +374,7 @@ def _extra_macros(runs: pd.DataFrame, ckpt: pd.DataFrame, ex: dict) -> list[str]
     ps = ex.get("per_seed", pd.DataFrame())
     if not ps.empty:
         seeds = ps[ps["seed"] != "mean"]
-        out.append(_macro("NPerSeedCIExclZero", f"{int(seeds['excludes_zero'].sum())}/{len(seeds)}"))
+        out.append(_macro("NPerSeedCIExclZero", f"{int(seeds['excludes_zero'].sum())} of {len(seeds)}"))
     for _, r in ex.get("subgroup_ci", pd.DataFrame()).iterrows():
         g = {"sarcastic": "Sarc", "non-sarcastic": "NonSarc", "msa": "Msa", "egypt": "Egy", "gulf": "Gulf", "levant": "Lev"}.get(r["group"])
         if g is None:
@@ -383,4 +383,7 @@ def _extra_macros(runs: pd.DataFrame, ckpt: pd.DataFrame, ex: dict) -> list[str]
         out.append(_macro(k, signed(r["mean_diff"])))
         out.append(_macro(k + "CI", ci(r["ci_low"], r["ci_high"])))
         out.append(_macro(f"SubN{g}", str(int(r["n"]))))
+    for _, r in ex.get("per_cls", pd.DataFrame()).iterrows():
+        k = f"Pc{DS_MACRO[r['dataset']]}{MODEL_MACRO[r['model']]}{str(r['label']).capitalize()}"
+        out.append(_macro(k, f(r["f1_mean"])))
     return list(dict.fromkeys(out))
