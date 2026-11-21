@@ -1,0 +1,25 @@
+protocol,group,n,metric,seed_diffs,mean_diff,ci_low,ci_high,excludes_zero
+historical,sarcasm=True,345,macro_f1,-1.43 / +0.65 / -2.12,-0.97,-4.44,2.11,False
+historical,sarcasm=True,345,f1_pn,+1.46 / +3.39 / -0.99,1.29,-1.78,4.71,False
+historical,sarcasm=False,1765,macro_f1,+4.60 / +4.08 / +3.37,4.01,2.23,5.93,True
+historical,sarcasm=False,1765,f1_pn,+5.29 / +5.72 / +4.64,5.22,2.97,7.6,True
+independent,sarcasm=True,345,macro_f1,-4.74 / -0.99 / -2.06,-2.59,-7.15,1.95,False
+independent,sarcasm=True,345,f1_pn,-3.16 / +2.36 / -0.59,-0.47,-4.79,3.99,False
+independent,sarcasm=False,1765,macro_f1,+3.65 / +2.98 / +3.65,3.43,1.64,5.26,True
+independent,sarcasm=False,1765,f1_pn,+5.25 / +3.98 / +3.96,4.4,2.11,6.76,True
+historical,dialect=msa,1410,macro_f1,+3.85 / +2.73 / +2.27,2.95,1.11,4.87,True
+historical,dialect=msa,1410,f1_pn,+4.37 / +3.97 / +3.14,3.83,1.48,6.33,True
+historical,dialect=egypt,479,macro_f1,+3.42 / +3.41 / +5.24,4.02,0.68,7.75,True
+historical,dialect=egypt,479,f1_pn,+3.50 / +3.89 / +6.60,4.66,1.27,8.47,True
+historical,dialect=gulf,105,macro_f1,+11.59 / +15.01 / +4.44,10.35,3.36,17.83,True
+historical,dialect=gulf,105,f1_pn,+11.25 / +19.13 / +6.80,12.39,5.04,21.06,True
+historical,dialect=levant,112,macro_f1,+3.10 / +4.36 / +1.08,2.84,-5.37,10.75,False
+historical,dialect=levant,112,f1_pn,+5.00 / +6.81 / +2.73,4.85,-4.83,14.81,False
+independent,dialect=msa,1410,macro_f1,+2.47 / +1.57 / +1.68,1.91,-0.17,3.88,False
+independent,dialect=msa,1410,f1_pn,+3.80 / +1.95 / +1.33,2.36,-0.23,4.89,False
+independent,dialect=egypt,479,macro_f1,+2.96 / +5.58 / +4.88,4.48,1.01,7.87,True
+independent,dialect=egypt,479,f1_pn,+3.94 / +7.56 / +5.47,5.66,2.03,9.07,True
+independent,dialect=gulf,105,macro_f1,+9.72 / +3.72 / +9.39,7.61,0.35,15.58,True
+independent,dialect=gulf,105,f1_pn,+14.58 / +6.99 / +7.96,9.85,2.27,18.59,True
+independent,dialect=levant,112,macro_f1,+7.82 / +9.48 / -0.53,5.59,-3.11,14.3,False
+independent,dialect=levant,112,f1_pn,+7.16 / +10.04 / +1.78,6.33,-4.01,16.64,False

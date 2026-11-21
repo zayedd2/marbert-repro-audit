@@ -1,52 +1,45 @@
-# Shared settings for every run. Anything that departs from [1] is listed in docs/DEPARTURES.md.
+# Settings of the runs that produced the reported results (Members 2 and 3, Colab, November 2026).
+# Training happened in notebooks/historical_reproduction.ipynb; the values below document those runs and
+# drive the analysis code. Every difference from [1] is logged in docs/DEPARTURES.md.
 # [1] Abdul-Mageed, Elmadany & Nagoudi (2021), ARBERT & MARBERT, ACL-IJCNLP.
 
 experiment_name: marbert-repro-audit
 
-# Three training seeds per configuration (proposal, audit item 4).
-# A seed controls classifier-head initialisation, dropout and the order of training batches.
-seeds: [42, 1234, 2026]
+seeds: [42, 43, 44]          # one seed per run; MARBERT and AraBERT share seeds, code, data and GPU
 
-# The dev split is drawn ONCE with its own seed and reused by every model and every training seed,
-# so seed-to-seed variation reflects training randomness only, not a different dev set.
-split_seed: 20261113
-dev_fraction: 0.10          # stratified 10% of each training set (independent protocol only)
+dev_fraction: 0.10           # Member 1: stratified, grouped (copies of a tweet stay together), seed 42
 
-training:                   # as in [1] unless marked
-  optimizer: adam           # torch.optim.Adam, no weight decay
+training:                    # as run (notebook section 2); [1] Sec. 3.4 unless marked
+  optimizer: adam            # torch.optim.Adam, no weight decay
   learning_rate: 2.0e-6
   weight_decay: 0.0
-  adam_betas: [0.9, 0.999]  # PyTorch defaults (unreported in [1])
-  adam_eps: 1.0e-8          # PyTorch default (unreported in [1])
   batch_size: 32
-  max_length: 256           # truncation length; batches are padded only to their longest item
+  max_length: 256            # dynamic padding per batch (ours)
   epochs: 25
-  lr_schedule: constant     # unreported in [1]; logged assumption
-  warmup_steps: 0           # unreported in [1]; logged assumption
-  max_grad_norm: null       # no clipping (unreported in [1]); set a number to enable
-  fp16: false               # mixed precision OFF by default; turning it on is a departure
+  lr_schedule: constant      # unreported in [1]; assumption (departure 4)
+  warmup_steps: 0
+  fp16: true                 # mixed precision (departure 7)
+  dropout: 0.1               # HF default classification head (departure 6)
   eval_batch_size: 128
-  deterministic: true       # cuDNN deterministic mode; some GPU kernels may still be nondeterministic
+
+preprocessing:               # applied identically to both models (departure 9)
+  replace_mentions: "USER"
+  replace_urls: "URL"
+  normalize_whitespace: true
+  remove_diacritics: false   # [1] removes them; found after the runs
+  replace_hashtags: false    # [1] replaces them with HASHTAG; found after the runs
 
 selection:
-  tie_break: earliest       # if two epochs tie on the selection metric, take the earlier one
+  tie_break: earliest        # if two epochs tie on the selection metric, take the earlier one
 
-bootstrap:
-  n_resamples: 10000        # paired bootstrap over test items
+bootstrap:                   # identical to the team's notebook (section 19), so CIs regenerate exactly
+  n_resamples: 1000
   confidence: 0.95
-  seed: 12345
-  chunk_size: 500
+  seed: 12345                # one generator, drawn per (protocol, dataset) in table order
 
 reproduction:
-  gap_threshold_pp: 2.0     # "reproduced" if |gap| <= 2 pp or published score inside our seed range,
-                            # AND the MARBERT > AraBERT ranking holds on that dataset
-
-preprocessing:              # scripted and applied identically to both models (unreported in [1])
-  normalize_whitespace: true
-  replace_urls: "URL"       # set to null to keep URLs as they are
-  replace_mentions: "USER"  # set to null to keep @mentions as they are
-  remove_diacritics: false
-  remove_tatweel: false
+  gap_threshold_pp: 2.0      # reproduced if |gap| <= 2 pp or published score inside our seed range,
+                             # AND MARBERT > AraBERT on that dataset (fixed in the proposal)
 
 subgroups:
-  min_group_size: 50        # groups smaller than this are flagged as exploratory in tables
+  min_group_size: 100        # groups smaller than this are marked exploratory (Member 1's rule)

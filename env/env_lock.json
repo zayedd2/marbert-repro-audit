@@ -1,0 +1,10 @@
+{
+  "transformers": "5.22.1",
+  "tokenizers": "0.23.3",
+  "huggingface_hub": "1.33.0",
+  "scikit-learn": "1.6.1",
+  "safetensors": "0.8.0",
+  "torch": "2.14.1+cu130",
+  "python": "3.13.16",
+  "gpu_first_session": "Tesla T4, 580.82.07, 15360 MiB"
+}

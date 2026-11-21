@@ -1,0 +1,6 @@
+historical sarcastic 345 1.29 [-1.73  4.76]
+historical non-sarc 1765 5.22 [3.17 7.68]
+independent sarcastic 345 -0.47 [-4.34  3.29]
+independent non-sarc 1765 4.4 [2.08 6.66]
+
+[exited with code 0]

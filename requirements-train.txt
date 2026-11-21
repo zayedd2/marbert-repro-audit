@@ -1,0 +1,11 @@
+# Environment that produced the reported runs (env/env_lock.json, Google Colab, NVIDIA L4, CUDA 13.0).
+# Training code: notebooks/historical_reproduction.ipynb. Install on top of Colab's torch build.
+torch==2.14.1
+transformers==5.22.1
+tokenizers==0.23.3
+huggingface_hub==1.33.0
+safetensors==0.8.0
+scikit-learn==1.6.1
+pandas
+numpy
+openpyxl

@@ -1,0 +1,7 @@
+dataset,metric,model,n_seeds,published,ours_mean,ours_sd,ours_min,ours_max,gap_pp,within_2pp,within_seed_range,marbert_gt_arabert,reproduced
+arsarcasm,f1_pn,marbert,3,71.5,72.42,0.66,71.97,73.18,0.92,True,False,True,True
+arsarcasm,f1_pn,arabert,3,63.5,67.86,0.31,67.63,68.22,4.36,False,False,True,False
+astd,f1_pn,marbert,3,78.0,80.9,0.55,80.48,81.52,2.9,False,False,True,False
+astd,f1_pn,arabert,3,72.0,75.83,0.17,75.68,76.01,3.83,False,False,True,False
+ajgt,accuracy,marbert,3,96.11,94.35,0.32,94.17,94.72,-1.76,True,False,True,True
+ajgt,accuracy,arabert,3,92.22,88.89,0.73,88.06,89.44,-3.33,False,False,True,False

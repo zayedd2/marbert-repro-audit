@@ -1,0 +1,34 @@
+protocol: historical
+dataset: arsarcasm
+model: marbert
+seed: 42
+backend: team-colab
+protocol_description: historical
+labels:
+- negative
+- neutral
+- positive
+selection:
+  split: test
+  metric: historical
+model_id: UBC-NLP/MARBERT
+model_revision: 88e1fa192dd723cf0b3563500aec46209762eb22
+training:
+  lr: 2.0e-06
+  schedule: linear_warmup
+  warmup: 0.1
+  epochs: 25
+  fp16: null
+  dynamic_padding: null
+variant:
+  tag: sched_linear_warmup
+  text_fn: ours (section 3)
+  model_id: UBC-NLP/MARBERT
+preprocessing: null
+n_items:
+  train: 8437
+  test: null
+data_md5:
+  train: null
+  test: null
+source_folder: historical/arsarcasm/marbert/seed42

@@ -1,0 +1,7 @@
+variant,description,dataset,model,seed,metric,score,best_epoch,main_run_score,change_vs_main,vs_published
+arabert_v01_official_prep,"AraBERT v0.1, AraBERT's official preprocessing",arsarcasm,arabert,42,f1_pn,68.75043971576773,9,67.63005302294904,1.120386692818684,5.250439715767726
+arabert_v1_farasa,AraBERT v1 with Farasa segmentation,arsarcasm,arabert,42,f1_pn,67.90120917355142,12,67.63005302294904,0.27115615060237985,4.401209173551422
+lr_2e-5,Constant LR 2e-5 (10x),arsarcasm,arabert,42,f1_pn,67.5997150997151,3,67.63005302294904,-0.030337923233943798,4.099715099715098
+lr_2e-5,Constant LR 2e-5 (10x),arsarcasm,marbert,42,f1_pn,71.66757029660616,3,72.11376032861541,-0.44619003200925533,0.16757029660615785
+sched_linear_warmup,"Linear decay + 10% warm-up, LR 2e-6",arsarcasm,arabert,42,f1_pn,68.06378988942421,10,67.63005302294904,0.4337368664751722,4.563789889424214
+sched_linear_warmup,"Linear decay + 10% warm-up, LR 2e-6",arsarcasm,marbert,42,f1_pn,72.16863700336724,9,72.11376032861541,0.05487667475182434,0.6686370033672375

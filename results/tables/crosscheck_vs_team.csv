@@ -1,0 +1,13 @@
+check,decimals,values_compared,max_abs_difference,match
+reproduction: mean over seeds,2,6,0.0,True
+reproduction: SD over seeds,2,6,0.0,True
+independent: dev-selected mean,2,6,0.0,True
+independent: best-on-test mean (same runs),2,6,0.0,True
+checkpoint: dev-selected epoch,3,18,0.0,True
+checkpoint: selection optimism per run,3,18,0.0,True
+paired bootstrap: observed_diff (per seed and mean),3,48,0.0,True
+paired bootstrap: ci_low (per seed and mean),3,48,0.0,True
+paired bootstrap: ci_high (per seed and mean),3,48,0.0,True
+subgroup bootstrap: mean_diff,2,24,0.0,True
+subgroup bootstrap: ci_low,2,24,0.0,True
+subgroup bootstrap: ci_high,2,24,0.0,True

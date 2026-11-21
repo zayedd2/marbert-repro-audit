@@ -14,7 +14,7 @@ import pandas as pd
 from .config import DATASET_ORDER, MODEL_ORDER, PROTOCOL_ORDER
 from .metrics import METRIC_LABELS
 
-DS_MACRO = {"arsarcasm": "ArSarc", "astd": "Astd", "ajgt": "Ajgt"}
+DS_MACRO = {"arsarcasm": "ArSarc", "astd": "Astd", "ajgt": "Ajgt", "ajgt_ubc": "AjgtUbc"}
 MODEL_MACRO = {"marbert": "Marbert", "arabert": "Arabert"}
 PROT_MACRO = {"historical": "Hist", "independent": "Ind"}
 KIND_MACRO = {"hist": "Hm", "macro": "Mf"}
@@ -79,11 +79,12 @@ def _ds_header(cfg, d, metric=None) -> str:
 def tex_reproduction(df: pd.DataFrame, cfg: dict) -> str:
     lines = [r"\begin{tabular}{lrrrc}", r"\toprule",
              r"Model & Published & Ours & Gap & Rep. \\"]
-    for d in DATASET_ORDER:
-        g = df[df["dataset"] == d]
+    for d in list(dict.fromkeys(df["dataset"].astype(str))):
+        g = df[df["dataset"].astype(str) == d]
         if g.empty:
             continue
-        lines += [r"\midrule", _group_header(_ds_header(cfg, d, g["metric"].iloc[0]), 5)]
+        head = _ds_header(cfg, d, g["metric"].iloc[0]) + (", check runs" if cfg["datasets"][d].get("check_only") else "")
+        lines += [r"\midrule", _group_header(head, 5)]
         for _, r in g.iterrows():
             verdict = {"reproduced": "Yes", "not reproduced": "No"}.get(r["verdict"], "--")
             lines.append(f"{r['model_name']} & {f(r['published'])} & {pm(r['mean'], r['sd'])} & {signed(r['gap'])} & {verdict} \\\\")
@@ -106,24 +107,22 @@ def tex_independent(df: pd.DataFrame, cfg: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def tex_checkpoint(df: pd.DataFrame, cfg: dict) -> str:
-    lines = [r"\begin{tabular}{ll rrr rrr}", r"\toprule",
-             r" & & \multicolumn{3}{c}{Published metric} & \multicolumn{3}{c}{Macro-F1} \\",
-             r"\cmidrule(lr){3-5}\cmidrule(lr){6-8}",
-             r"Dataset & Model & Dev-sel. & Max & Gap & Dev-sel. & Max & Gap \\", r"\midrule"]
-    for i, d in enumerate(DATASET_ORDER):
-        if i:
-            lines.append(r"\midrule")
-        for j, m in enumerate(MODEL_ORDER):
-            g = df[(df["dataset"] == d) & (df["model"] == m)].set_index("metric")
-            if g.empty:
-                continue
-            hm, mf = g.iloc[0], g.loc["macro_f1"] if "macro_f1" in g.index else g.iloc[-1]
-            first = f"\\multirow{{2}}{{*}}{{{_short(cfg, d)} ({metric_label(g.index[0])})}}" if j == 0 else ""
-            cells = []
-            for r in (hm, mf):
-                cells += [pm(r["selected_mean"], r["selected_sd"]), f(r["max_mean"]), pm(r["gap_mean"], r["gap_sd"])]
-            lines.append(f"{first} & {cfg['models'][m]['display_name']} & " + " & ".join(cells) + r" \\")
+def tex_checkpoint(ckpt: pd.DataFrame, selrule: pd.DataFrame, cfg: dict) -> str:
+    """Published metric only: dev-selected (as run), dev macro-F1 rule (robustness), best-on-test, optimism."""
+    lines = [r"\begin{tabular}{l rrrrc}", r"\toprule",
+             r"Model & Dev-sel. & Dev macro-F1 & Best on test & Optimism & Same epoch \\"]
+    for d in DATASET_ORDER:
+        g = ckpt[(ckpt["dataset"] == d) & (ckpt["metric"] != "macro_f1")]
+        if g.empty:
+            continue
+        lines += [r"\midrule", _group_header(_ds_header(cfg, d, g["metric"].iloc[0]), 6)]
+        for _, r in g.iterrows():
+            sr = selrule[(selrule["dataset"] == d) & (selrule["model"] == r["model"])]
+            rob = pm(sr["dev_macro_f1_mean"].iloc[0], sr["dev_macro_f1_sd"].iloc[0]) if not sr.empty else "--"
+            same = int(round(r["same_epoch_share"] * r["n_seeds"])) if not _nan(r["same_epoch_share"]) else None
+            same_s = "--" if same is None else f"{same}/{int(r['n_seeds'])}"
+            lines.append(f"{r['model_name']} & {pm(r['selected_mean'], r['selected_sd'])} & {rob} & {f(r['max_mean'])} & "
+                         f"{pm(r['gap_mean'], r['gap_sd'])} & {same_s} \\\\")
     lines += [r"\bottomrule", r"\end{tabular}"]
     return "\n".join(lines) + "\n"
 
@@ -173,33 +172,45 @@ def tex_per_class(df: pd.DataFrame, cfg: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def tex_subgroups(df: pd.DataFrame, cfg: dict) -> str:
-    lines = [r"\begin{tabular}{l r rr}", r"\toprule", r"Group & $n$ & MARBERT & AraBERT \\"]
-    if df.empty:
-        return "\n".join(lines + [r"\midrule", r"\multicolumn{4}{c}{no subgroup labels available} \\", r"\bottomrule", r"\end{tabular}"]) + "\n"
-    for col, g in df.groupby("group_column", sort=False):
-        lines += [r"\midrule", _group_header(str(col).capitalize(), 4)]
-        for val, gg in g.groupby("group", sort=True):
-            r = {row["model"]: row for _, row in gg.iterrows()}
-            star = "$^{\\dagger}$" if bool(gg["exploratory"].iloc[0]) else ""
-            vals = [pm(r[m]["macro_f1_mean"], r[m]["macro_f1_sd"]) if m in r else "--" for m in MODEL_ORDER]
-            lines.append(f"{val}{star} & {int(gg['n_items'].iloc[0])} & {vals[0]} & {vals[1]} \\\\")
+def tex_subgroups(ci_df: pd.DataFrame, means: pd.DataFrame, cfg: dict) -> str:
+    """ArSarcasm subgroups: n, model macro-F1 means (independent), MARBERT - AraBERT with paired bootstrap CIs."""
+    min_n = int(cfg.get("subgroups", {}).get("min_group_size", 100))
+    lines = [r"\begin{tabular}{l r rr rr}", r"\toprule",
+             r" & & \multicolumn{2}{c}{Macro-F1 (independent)} & \multicolumn{2}{c}{MARBERT $-$ AraBERT, 95\% CI} \\",
+             r"\cmidrule(lr){3-4}\cmidrule(lr){5-6}",
+             r"Group & $n$ & MARBERT & AraBERT & Macro-F1 & F1-PN \\"]
+    if ci_df.empty:
+        return "\n".join(lines + [r"\midrule", r"\multicolumn{6}{c}{no subgroup results} \\", r"\bottomrule", r"\end{tabular}"]) + "\n"
+    names = {"sarcastic": "Sarcastic", "non-sarcastic": "Non-sarcastic", "msa": "MSA", "egypt": "Egyptian",
+             "gulf": "Gulf", "levant": "Levantine"}
+    for col, title in (("sarcasm", "Sarcasm"), ("dialect", "Dialect")):
+        g = ci_df[(ci_df["protocol"] == "independent") & (ci_df["group_column"] == col)]
+        if g.empty:
+            continue
+        lines += [r"\midrule", _group_header(title, 6)]
+        for gv in dict.fromkeys(g["group"]):
+            rows = g[g["group"] == gv].set_index("metric")
+            n = int(rows["n"].iloc[0])
+            mm = means[(means["group_column"] == col) & (means["group"] == gv)].set_index("model")
+            mvals = [pm(mm.loc[m, "macro_f1_mean"], mm.loc[m, "macro_f1_sd"]) if m in mm.index else "--" for m in MODEL_ORDER]
+            cells = []
+            for met in ("macro_f1", "f1_pn"):
+                r = rows.loc[met]
+                cells.append(f"{signed(r['mean_diff'])} {{\\scriptsize{ci(r['ci_low'], r['ci_high'])}}}")
+            star = "$^{\\dagger}$" if n < min_n else ""
+            lines.append(f"{names.get(gv, gv)}{star} & {n} & {mvals[0]} & {mvals[1]} & {cells[0]} & {cells[1]} \\\\")
     lines += [r"\bottomrule", r"\end{tabular}"]
     return "\n".join(lines) + "\n"
 
 
-def tex_data_audit(df: pd.DataFrame) -> str:
-    lines = [r"\begin{tabular}{ll rrrr rr}", r"\toprule",
-             r"Dataset & Split & $n$ & Neg. & Neu. & Pos. & Dup. & Overlap \\", r"\midrule"]
-    prev = None
-    for _, r in df.iterrows():
-        if prev is not None and r["dataset"] != prev:
-            lines.append(r"\midrule")
-        prev = r["dataset"]
-        neu = "--" if _nan(r.get("n_neutral")) else str(int(r["n_neutral"]))
-        ov = "--" if _nan(r.get("overlap_with_train")) else str(int(r["overlap_with_train"]))
-        lines.append(f"{r['dataset_name']} & {r['split']} & {int(r['n'])} & {int(r['n_negative'])} & {neu} & {int(r['n_positive'])} & "
-                     f"{int(r['duplicates_within'])} & {ov} \\\\")
+def tex_sensitivity(sens: pd.DataFrame) -> str:
+    lines = [r"\begin{tabular}{ll rrr}", r"\toprule", r"Variant & Model & F1-PN & vs main run & vs [1] \\", r"\midrule"]
+    if sens.empty:
+        return "\n".join(lines + [r"\multicolumn{5}{c}{no follow-up runs} \\", r"\bottomrule", r"\end{tabular}"]) + "\n"
+    for _, r in sens.iterrows():
+        model = {"marbert": "MARBERT", "arabert": "AraBERT"}.get(r["model"], r["model"])
+        desc = str(r["description"]).replace("%", "\\%")
+        lines.append(f"{desc} & {model} & {f(r['score'])} & {signed(r['change_vs_main'])} & {signed(r['vs_published'])} \\\\")
     lines += [r"\bottomrule", r"\end{tabular}"]
     return "\n".join(lines) + "\n"
 
@@ -225,7 +236,8 @@ def _macro(name: str, value: str) -> str:
 
 
 def numbers_tex(runs: pd.DataFrame, repro: pd.DataFrame, indep: pd.DataFrame, hist_tbl: pd.DataFrame,
-                ckpt: pd.DataFrame, margins: pd.DataFrame, cfg: dict, n_expected: int, synthetic: bool) -> str:
+                ckpt: pd.DataFrame, margins: pd.DataFrame, cfg: dict, n_expected: int, synthetic: bool,
+                extras: dict | None = None) -> str:
     out = ["% AUTO-GENERATED by scripts/make_report_assets.py - do not edit by hand.",
            "% Every number in report/experiments_results.tex comes from here."]
     banner = r"\textbf{[SYNTHETIC DRY RUN -- NOT REAL RESULTS]} " if synthetic else ""
@@ -298,7 +310,7 @@ def numbers_tex(runs: pd.DataFrame, repro: pd.DataFrame, indep: pd.DataFrame, hi
         out.append(_macro(f"CkptGapAll{kind}", f(vals.mean())))
         out.append(_macro(f"CkptGapAllMax{kind}", f(vals.max())))
     if not ind_runs.empty:
-        same = (ind_runs["selected_epoch"] == ind_runs["argmax_test_macro_f1_epoch"]).sum()
+        same = sum(int(r["selected_epoch"] == r[f"argmax_test_{r['hist_metric']}_epoch"]) for _, r in ind_runs.iterrows())
         out.append(_macro("CkptSameEpoch", f"{int(same)}/{len(ind_runs)}"))
     else:
         out.append(_macro("CkptSameEpoch", "--"))
@@ -328,4 +340,47 @@ def numbers_tex(runs: pd.DataFrame, repro: pd.DataFrame, indep: pd.DataFrame, hi
         out.append(_macro(f"NCIExclZero{PROT_MACRO[p]}", f"{int(excl['ci_excludes_zero'].sum())}/{len(excl)}" if len(excl) else "--"))
         sd_ratio = excl["sd_over_margin"].replace([np.inf], np.nan).max() if len(excl) else float("nan")
         out.append(_macro(f"MaxSDRatio{PROT_MACRO[p]}", f(sd_ratio)))
+    out += _extra_macros(runs, ckpt, extras or {})
     return "\n".join(out) + "\n"
+
+
+def _extra_macros(runs: pd.DataFrame, ckpt: pd.DataFrame, ex: dict) -> list[str]:
+    out = []
+    hm = ckpt[ckpt["metric"] != "macro_f1"] if not ckpt.empty else ckpt
+    if not hm.empty:
+        out.append(_macro("OptimismMin", f(hm["gap_mean"].min())))
+        out.append(_macro("OptimismMax", f(hm["gap_mean"].max())))
+    sel = ex.get("selrule", pd.DataFrame())
+    if not sel.empty:
+        out.append(_macro("SelRuleMaxMeanChange", f((sel["dev_macro_f1_mean"] - sel["dev_paper_metric_mean"]).abs().max())))
+        out.append(_macro("SelRuleMaxRunChange", f(sel["max_abs_change_per_run"].max())))
+    for _, r in ex.get("lead", pd.DataFrame()).iterrows():
+        k = DS_MACRO[r["dataset"]]
+        out.append(_macro(f"LeadDev{k}", f(r["lead_dev_selected"])))
+        out.append(_macro(f"LeadBest{k}", f(r["lead_best_on_test"])))
+        out.append(_macro(f"LeadGain{k}", signed(r["lead_gained_by_test_selection"])))
+    bml = ex.get("bml", pd.DataFrame())
+    if not bml.empty:
+        out.append(_macro("BestMinusLastMin", f(bml["best_minus_last_min"].min())))
+        out.append(_macro("BestMinusLastMax", f(bml["best_minus_last_max"].max())))
+    comp = ex.get("compute", pd.DataFrame())
+    for _, r in comp[comp["protocol"] == "both"].iterrows() if not comp.empty else []:
+        out.append(_macro(f"GPUHours{DS_MACRO[str(r['dataset'])]}", f(r["gpu_hours"], 1)))
+    for _, r in ex.get("ubc", pd.DataFrame()).iterrows():
+        k = f"AjgtUbc{MODEL_MACRO[r['model']]}"
+        out.append(_macro(f"HistScore{k}", pm(r["mean"], r["sd"])))
+        out.append(_macro(f"Gap{k}", signed(r["gap"])))
+        out.append(_macro(f"Verdict{k}", r["verdict"]))
+    ps = ex.get("per_seed", pd.DataFrame())
+    if not ps.empty:
+        seeds = ps[ps["seed"] != "mean"]
+        out.append(_macro("NPerSeedCIExclZero", f"{int(seeds['excludes_zero'].sum())}/{len(seeds)}"))
+    for _, r in ex.get("subgroup_ci", pd.DataFrame()).iterrows():
+        g = {"sarcastic": "Sarc", "non-sarcastic": "NonSarc", "msa": "Msa", "egypt": "Egy", "gulf": "Gulf", "levant": "Lev"}.get(r["group"])
+        if g is None:
+            continue
+        k = f"Sub{PROT_MACRO[r['protocol']]}{g}{'Mf' if r['metric'] == 'macro_f1' else 'Fpn'}"
+        out.append(_macro(k, signed(r["mean_diff"])))
+        out.append(_macro(k + "CI", ci(r["ci_low"], r["ci_high"])))
+        out.append(_macro(f"SubN{g}", str(int(r["n"]))))
+    return list(dict.fromkeys(out))

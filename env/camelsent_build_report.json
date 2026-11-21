@@ -1,0 +1,71 @@
+{
+  "decisions": [
+    "ASTD: official 4class-unbalanced split; OBJ dropped; NEUTRAL (=mixed in ASTD) kept as neutral.",
+    "ArSAS: no official split; stratified 90% kept as train+dev (seed 42); Mixed dropped.",
+    "ArSenTD-LEV: no official split; stratified 90% kept (seed 42); very_pos/very_neg -> pos/neg."
+  ],
+  "sources": {
+    "ASTD (train+validation)": {
+      "n": 2654,
+      "labels": {
+        "negative": 1348,
+        "neutral": 666,
+        "positive": 640
+      }
+    },
+    "ArSAS (90% train+dev)": {
+      "n": 17785,
+      "labels": {
+        "negative": 7056,
+        "neutral": 6551,
+        "positive": 4178
+      }
+    },
+    "SemEval-2017 4A Arabic (train)": {
+      "n": 3355,
+      "labels": {
+        "neutral": 1470,
+        "negative": 1142,
+        "positive": 743
+      }
+    },
+    "ArSenTD-LEV (90% train+dev)": {
+      "n": 3600,
+      "labels": {
+        "negative": 1695,
+        "positive": 1109,
+        "neutral": 796
+      }
+    }
+  },
+  "missing_sources": [],
+  "diagnostics": {
+    "duplicate_texts_in_train": 1128,
+    "texts_with_conflicting_labels": 203,
+    "train_tweets_identical_to_astd_test": 0
+  },
+  "train_total": {
+    "n": 27394,
+    "labels": {
+      "negative": 11241,
+      "neutral": 9483,
+      "positive": 6670
+    }
+  },
+  "test_total": {
+    "n": 661,
+    "labels": {
+      "negative": 336,
+      "neutral": 166,
+      "positive": 159
+    }
+  },
+  "paper_targets": {
+    "train": 24800,
+    "test": 664
+  },
+  "checks": {
+    "train_vs_paper_pct": 110.5,
+    "test_vs_paper": "661 vs 664"
+  }
+}

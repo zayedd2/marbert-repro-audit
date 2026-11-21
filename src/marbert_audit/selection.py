@@ -44,6 +44,15 @@ def summarize_run(run_dir: Path, cfg: dict) -> dict:
         "model_commit": (env.get("model_info") or {}).get("model_commit"),
         "git_commit": env.get("git_commit"),
     }
+    rob = cfg["protocols"][protocol].get("robustness_selection")
+    if rob:
+        e_rob = select_epoch(ep, rob["split"], rob["metric"])
+        r_sel = ep.loc[ep["epoch"] == e_rob].iloc[0]
+        out["robust_selected_epoch"] = e_rob
+        out["robust_test_hist"] = float(r_sel[f"test_{hist}"])
+        out["robust_test_macro_f1"] = float(r_sel["test_macro_f1"])
+    last = ep.iloc[-1]
+    out["last_test_hist"] = float(last[f"test_{hist}"])
     for m in METRICS:
         out[f"test_{m}"] = float(sel[f"test_{m}"])
         out[f"max_test_{m}"] = float(ep[f"test_{m}"].max())
@@ -51,24 +60,31 @@ def summarize_run(run_dir: Path, cfg: dict) -> dict:
         out[f"ckpt_gap_{m}"] = out[f"max_test_{m}"] - out[f"test_{m}"]  # >= 0 by construction
         if f"dev_{m}" in ep.columns:
             out[f"dev_{m}"] = float(sel[f"dev_{m}"])
+    out["max_test_hist"] = out[f"max_test_{hist}"]
+    out["ckpt_gap_hist"] = out[f"ckpt_gap_{hist}"]
     return out
 
 
-def iter_run_dirs(results_root: Path | str):
-    root = Path(results_root) / "runs"
+def iter_run_dirs(results_root: Path | str, subdir: str = "runs"):
+    root = Path(results_root) / subdir
     if not root.exists():
         return
-    for done in sorted(root.glob("*/*/*/seed*/DONE")):
+    pattern = "*/*/*/seed*/DONE" if subdir == "runs" else "**/seed*/DONE"
+    for done in sorted(root.glob(pattern)):
         yield done.parent
 
 
-def collect_runs(results_root: Path | str, cfg: dict) -> pd.DataFrame:
-    rows = [summarize_run(d, cfg) for d in iter_run_dirs(results_root)]
+def collect_runs(results_root: Path | str, cfg: dict, subdir: str = "runs", datasets: list[str] | None = None) -> pd.DataFrame:
+    """Summaries of all completed runs. By default only the three main datasets (the 36-run grid);
+    pass datasets=["ajgt_ubc"] for the AJGT check runs on the authors' split."""
+    datasets = datasets or DATASET_ORDER
+    rows = [summarize_run(d, cfg) for d in iter_run_dirs(results_root, subdir)]
+    rows = [r for r in rows if r["dataset"] in datasets]
     if not rows:
         return pd.DataFrame()
     df = pd.DataFrame(rows)
     df["protocol"] = pd.Categorical(df["protocol"], PROTOCOL_ORDER, ordered=True)
-    df["dataset"] = pd.Categorical(df["dataset"], DATASET_ORDER, ordered=True)
+    df["dataset"] = pd.Categorical(df["dataset"], datasets, ordered=True)
     df["model"] = pd.Categorical(df["model"], MODEL_ORDER, ordered=True)
     return df.sort_values(["protocol", "dataset", "model", "seed"]).reset_index(drop=True)
 

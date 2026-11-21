@@ -1,13 +1,7 @@
-# Full pipeline (GPU fine-tuning + analysis). On Google Colab torch is preinstalled.
-# Exact versions used for the reported runs are recorded in every run's env.json and in
-# requirements-lock.txt (written by the Colab notebook after the runs).
-torch>=2.3
-transformers>=4.40,<6
-datasets>=2.18
+# Rebuild every table, figure and report number from the saved predictions (no GPU, no torch).
 numpy>=1.24
 pandas>=2.0
 scikit-learn>=1.3
 matplotlib>=3.7
 PyYAML>=6.0
-openpyxl>=3.1
 pytest>=7

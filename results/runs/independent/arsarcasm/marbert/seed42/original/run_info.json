@@ -1,0 +1,44 @@
+{
+  "protocol": "independent: train = 90% of training set, best epoch selected on DEV, test reported at that epoch",
+  "dataset": "arsarcasm",
+  "model_key": "marbert",
+  "model_id": "UBC-NLP/MARBERT",
+  "model_revision": "88e1fa192dd723cf0b3563500aec46209762eb22",
+  "seed": 42,
+  "labels": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "n_train": 7593,
+  "n_dev": 844,
+  "n_test": 2110,
+  "md5": {
+    "train": "832534fae9e6e0248bc3ad1c97f5947e",
+    "dev": "65a1c12211e55f02ed1f12700cae8276",
+    "test": "d124818b86816057e0a1e41bec08e0fe"
+  },
+  "hp": {
+    "lr": 2e-06,
+    "batch_size": 32,
+    "max_len": 256,
+    "epochs": 25,
+    "weight_decay": 0.0,
+    "optimizer": "Adam (torch.optim.Adam)",
+    "scheduler": "constant (unreported in [1]; assumption)",
+    "warmup": 0
+  },
+  "epochs": 25,
+  "use_amp": true,
+  "preprocessing": {
+    "replace_user": true,
+    "replace_url": true
+  },
+  "dynamic_padding": true,
+  "max_train": null,
+  "gpu": "NVIDIA L4, 580.82.07, 23034 MiB",
+  "torch": "2.14.1+cu130",
+  "transformers": "5.22.1",
+  "started": "2026-11-19 17:04:53",
+  "finished": "2026-11-19 17:15:58"
+}

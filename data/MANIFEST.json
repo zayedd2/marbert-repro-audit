@@ -1,0 +1,200 @@
+{
+  "source": "Member 1, Team_Splits_Final.zip (make_team_splits.py)",
+  "files": {
+    "arsarcasm_train_full.csv": {
+      "md5": "9933c0020483a8f96c199c90e2e2af4c",
+      "n": 8437,
+      "labels": {
+        "negative": 2813,
+        "neutral": 4262,
+        "positive": 1362
+      }
+    },
+    "arsarcasm_train.csv": {
+      "md5": "832534fae9e6e0248bc3ad1c97f5947e",
+      "n": 7593,
+      "labels": {
+        "negative": 2531,
+        "neutral": 3836,
+        "positive": 1226
+      }
+    },
+    "arsarcasm_dev.csv": {
+      "md5": "65a1c12211e55f02ed1f12700cae8276",
+      "n": 844,
+      "labels": {
+        "negative": 282,
+        "neutral": 426,
+        "positive": 136
+      }
+    },
+    "arsarcasm_test.csv": {
+      "md5": "d124818b86816057e0a1e41bec08e0fe",
+      "n": 2110,
+      "labels": {
+        "negative": 716,
+        "neutral": 1078,
+        "positive": 316
+      }
+    },
+    "astd_train_full.csv": {
+      "md5": "86394d9ee0997a86819c83c04968e412",
+      "n": 27394,
+      "labels": {
+        "negative": 11241,
+        "neutral": 9483,
+        "positive": 6670
+      }
+    },
+    "astd_train.csv": {
+      "md5": "460dd11a2583781607fff0bebcaf0213",
+      "n": 24654,
+      "labels": {
+        "negative": 10118,
+        "neutral": 8534,
+        "positive": 6002
+      }
+    },
+    "astd_dev.csv": {
+      "md5": "d2c933b6f112b3873e7c7134e6ab4cbf",
+      "n": 2740,
+      "labels": {
+        "negative": 1123,
+        "neutral": 949,
+        "positive": 668
+      }
+    },
+    "astd_test.csv": {
+      "md5": "b5dbf82c4bb08c0cc00d4f7b9b7b0558",
+      "n": 661,
+      "labels": {
+        "negative": 336,
+        "neutral": 166,
+        "positive": 159
+      }
+    },
+    "ajgt_train_full.csv": {
+      "md5": "557c9c42af7377112814be8b14749e20",
+      "n": 1440,
+      "labels": {
+        "negative": 720,
+        "positive": 720
+      }
+    },
+    "ajgt_train.csv": {
+      "md5": "68545da3eb50f21eb0b1afe064f26987",
+      "n": 1296,
+      "labels": {
+        "negative": 648,
+        "positive": 648
+      }
+    },
+    "ajgt_dev.csv": {
+      "md5": "fa02c3fc53b89d3307887781007d5faf",
+      "n": 144,
+      "labels": {
+        "negative": 72,
+        "positive": 72
+      }
+    },
+    "ajgt_test.csv": {
+      "md5": "6ea767958a93d57da7ef45aafd337afd",
+      "n": 360,
+      "labels": {
+        "negative": 180,
+        "positive": 180
+      }
+    },
+    "ajgt_ubc_test_key.csv": {
+      "md5": "c2affd65ee9a1baa8c5bc3ea87d02425",
+      "n": 360,
+      "labels": {
+        "negative": 169,
+        "positive": 191
+      }
+    }
+  },
+  "split_summary": {
+    "arsarcasm": {
+      "train_full": {
+        "n": 8437,
+        "negative": 2813,
+        "neutral": 4262,
+        "positive": 1362
+      },
+      "train": {
+        "n": 7593,
+        "negative": 2531,
+        "neutral": 3836,
+        "positive": 1226
+      },
+      "dev": {
+        "n": 844,
+        "negative": 282,
+        "neutral": 426,
+        "positive": 136
+      },
+      "test": {
+        "n": 2110,
+        "negative": 716,
+        "neutral": 1078,
+        "positive": 316
+      },
+      "test_tweets_with_copy_in_train_full (normalised)": 151
+    },
+    "ajgt": {
+      "train_full": {
+        "n": 1440,
+        "negative": 720,
+        "neutral": 0,
+        "positive": 720
+      },
+      "train": {
+        "n": 1296,
+        "negative": 648,
+        "neutral": 0,
+        "positive": 648
+      },
+      "dev": {
+        "n": 144,
+        "negative": 72,
+        "neutral": 0,
+        "positive": 72
+      },
+      "test": {
+        "n": 360,
+        "negative": 180,
+        "neutral": 0,
+        "positive": 180
+      },
+      "test_tweets_with_copy_in_train_full (normalised)": 0
+    },
+    "astd": {
+      "train_full": {
+        "n": 27394,
+        "negative": 11241,
+        "neutral": 9483,
+        "positive": 6670
+      },
+      "train": {
+        "n": 24654,
+        "negative": 10118,
+        "neutral": 8534,
+        "positive": 6002
+      },
+      "dev": {
+        "n": 2740,
+        "negative": 1123,
+        "neutral": 949,
+        "positive": 668
+      },
+      "test": {
+        "n": 661,
+        "negative": 336,
+        "neutral": 166,
+        "positive": 159
+      },
+      "test_tweets_with_copy_in_train_full (normalised)": 4
+    }
+  }
+}

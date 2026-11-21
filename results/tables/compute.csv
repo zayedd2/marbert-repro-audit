@@ -1,0 +1,11 @@
+protocol,dataset,gpu_hours
+historical,arsarcasm,1.1661944444444445
+historical,astd,3.8571666666666666
+historical,ajgt,0.21330555555555558
+independent,arsarcasm,1.0607777777777778
+independent,astd,3.531416666666667
+independent,ajgt,0.19691666666666666
+both,arsarcasm,2.2269722222222224
+both,astd,7.388583333333334
+both,ajgt,0.4102222222222222
+all,all,10.025777777777778

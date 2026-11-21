@@ -1,0 +1,4 @@
+dataset,dataset_name,metric,lead_dev_selected,lead_best_on_test,lead_gained_by_test_selection
+arsarcasm,ArSarcasm-Sent,f1_pn,4.042697600537338,4.730548702414467,0.6878511018771292
+astd,ASTD,f1_pn,4.304679129882587,4.69703207199143,0.3923529421088432
+ajgt,AJGT,accuracy,5.462962962962962,5.648148148148181,0.18518518518521887

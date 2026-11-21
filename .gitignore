@@ -22,3 +22,4 @@ report/*.fls
 report/*.fdb_latexmk
 report/*.synctex.gz
 report/preview.pdf
+scripts/__pycache__/

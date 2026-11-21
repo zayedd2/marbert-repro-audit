@@ -1,0 +1,7 @@
+protocol,dataset,f1_pn_marbert,f1_pn_arabert,f1_pn_lead,f1_pn_marbert_wins,macro_f1_marbert,macro_f1_arabert,macro_f1_lead,macro_f1_marbert_wins,accuracy_marbert,accuracy_arabert,accuracy_lead,accuracy_marbert_wins
+historical,ajgt,94.348,88.881,5.467,True,94.348,88.881,5.467,True,94.352,88.889,5.463,True
+historical,arsarcasm,72.421,67.862,4.559,True,74.814,71.291,3.523,True,76.983,74.392,2.591,True
+historical,astd,80.896,75.831,5.065,True,68.248,61.539,6.709,True,72.617,67.574,5.043,True
+independent,ajgt,93.516,88.055,5.46,True,93.516,88.055,5.46,True,93.519,88.056,5.463,True
+independent,arsarcasm,70.796,66.754,4.043,True,73.655,70.536,3.12,True,76.319,73.87,2.449,True
+independent,astd,79.85,75.546,4.305,True,64.492,61.611,2.881,True,70.751,67.675,3.076,True

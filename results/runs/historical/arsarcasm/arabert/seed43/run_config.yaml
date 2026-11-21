@@ -1,0 +1,38 @@
+protocol: historical
+dataset: arsarcasm
+model: arabert
+seed: 43
+backend: team-colab
+protocol_description: 'historical: full training set, best epoch selected on TEST
+  (as in [1])'
+labels:
+- negative
+- neutral
+- positive
+selection:
+  split: test
+  metric: historical
+model_id: aubmindlab/bert-base-arabertv01
+model_revision: 01f6b7d2d17afcd0f79498f26f47dfc6207b56ea
+training:
+  lr: 2.0e-06
+  batch_size: 32
+  max_len: 256
+  epochs: 25
+  weight_decay: 0.0
+  optimizer: Adam (torch.optim.Adam)
+  scheduler: constant (unreported in [1]; assumption)
+  warmup: 0
+  fp16: true
+  dynamic_padding: true
+variant: null
+preprocessing:
+  replace_user: true
+  replace_url: true
+n_items:
+  train: 8437
+  test: 2110
+data_md5:
+  train: 76ca4544302f959aa8eef23cdfcc8fc1
+  test: bc0a22ea05303c682e806eac14056b4c
+source_folder: historical/arsarcasm/arabert/seed43

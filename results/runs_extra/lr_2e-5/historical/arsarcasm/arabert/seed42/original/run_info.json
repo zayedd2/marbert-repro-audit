@@ -1,0 +1,18 @@
+{
+  "tag": "lr_2e-5",
+  "protocol": "historical",
+  "dataset": "arsarcasm",
+  "model_key": "arabert",
+  "model_id": "aubmindlab/bert-base-arabertv01",
+  "model_revision": "01f6b7d2d17afcd0f79498f26f47dfc6207b56ea",
+  "seed": 42,
+  "lr": 2e-05,
+  "schedule": "constant",
+  "warmup": 0.0,
+  "text_fn": "ours (section 3)",
+  "challenge": false,
+  "n_train": 8437,
+  "epochs": 25,
+  "gpu": "NVIDIA L4, 580.82.07, 23034 MiB",
+  "started": "2026-11-20 12:23:48"
+}

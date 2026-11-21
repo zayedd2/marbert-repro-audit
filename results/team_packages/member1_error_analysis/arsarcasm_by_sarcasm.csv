@@ -1,0 +1,5 @@
+sarcasm,model,n,macro_F1_mean,macro_F1_sd,F1_PN_mean,accuracy_mean,note
+non-sarcastic,AraBERT,1765,69.14,0.48,63.71,73.3,
+non-sarcastic,MARBERT,1765,72.56,0.36,68.1,76.03,
+sarcastic,AraBERT,345,47.73,1.04,56.36,76.81,
+sarcastic,MARBERT,345,45.14,1.49,55.89,77.78,

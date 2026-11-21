@@ -1,0 +1,39 @@
+protocol: independent
+dataset: ajgt
+model: marbert
+seed: 44
+backend: team-colab
+protocol_description: 'independent: train = 90% of training set, best epoch selected
+  on DEV, test reported at that epoch'
+labels:
+- negative
+- positive
+selection:
+  split: dev
+  metric: historical
+model_id: UBC-NLP/MARBERT
+model_revision: 88e1fa192dd723cf0b3563500aec46209762eb22
+training:
+  lr: 2.0e-06
+  batch_size: 32
+  max_len: 256
+  epochs: 25
+  weight_decay: 0.0
+  optimizer: Adam (torch.optim.Adam)
+  scheduler: constant (unreported in [1]; assumption)
+  warmup: 0
+  fp16: true
+  dynamic_padding: true
+variant: null
+preprocessing:
+  replace_user: true
+  replace_url: true
+n_items:
+  train: 1296
+  test: 360
+  dev: 144
+data_md5:
+  train: 68545da3eb50f21eb0b1afe064f26987
+  dev: fa02c3fc53b89d3307887781007d5faf
+  test: 6ea767958a93d57da7ef45aafd337afd
+source_folder: independent/ajgt/marbert/seed44

@@ -1,0 +1,13 @@
+protocol,dataset,model,n_seeds,mean,sd,min,max,range
+historical,ajgt,arabert,3,88.889,0.735,88.056,89.444,1.389
+historical,ajgt,marbert,3,94.352,0.321,94.167,94.722,0.556
+historical,arsarcasm,arabert,3,67.862,0.311,67.63,68.216,0.586
+historical,arsarcasm,marbert,3,72.421,0.658,71.974,73.177,1.203
+historical,astd,arabert,3,75.831,0.167,75.683,76.013,0.33
+historical,astd,marbert,3,80.896,0.546,80.483,81.515,1.032
+independent,ajgt,arabert,3,88.056,1.111,86.944,89.167,2.222
+independent,ajgt,marbert,3,93.519,0.321,93.333,93.889,0.556
+independent,arsarcasm,arabert,3,66.754,0.681,66.17,67.502,1.331
+independent,arsarcasm,marbert,3,70.796,0.276,70.521,71.074,0.553
+independent,astd,arabert,3,75.546,0.486,74.997,75.921,0.925
+independent,astd,marbert,3,79.85,1.191,78.622,80.999,2.377

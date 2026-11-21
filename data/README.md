@@ -1,37 +1,32 @@
 # Data
 
-The tweets are **not redistributed** in this repository: each dataset belongs to its authors. What *is* committed:
+The tweets are **not redistributed** here: each dataset belongs to its authors. This folder holds what is needed to identify and rebuild the exact data used:
 
-* `splits/*_dev_ids.txt` lists the IDs of the stratified 10% dev subset of each training set (independent protocol). The same subset is used for every model and every seed.
-* `splits/ajgt_test_ids.txt` lists the IDs of our 80/20 AJGT test split (AJGT ships without a split).
-* `MANIFEST.json` records the SHA-256 checksums, item counts, sources and dropped labels of the processed files.
+* `splits/<dataset>_<split>_ids.txt` lists the item IDs of every split file, in file order: `train_full` (historical protocol), `train` / `dev` (independent protocol) and `test`. `ajgt_ubc_test_ids.txt` covers the authors' AJGT split.
+* `meta/arsarcasm_test_meta.csv` holds the ArSarcasm test labels, dialect and sarcasm flag (no text), for the subgroup results.
+* `MANIFEST.json` gives the MD5 checksum, size and label counts of every split file, plus Member 1's split summary.
 
-With the same source files, `scripts/prepare_data.py` rebuilds byte-identical processed files, and the committed ID files fix the splits. `scripts/verify_results.py` checks that every run used the same test file.
+## Sources and checksums
 
-## Processed format
-
-`data/processed/<dataset>/{train,test}.tsv`: UTF-8, tab-separated, with these columns:
-
-| column | meaning |
-|---|---|
-| `id` | stable item ID, for example `arsarcasm-test-00017` |
-| `text` | the tweet (tabs and newlines replaced by spaces) |
-| `label` | `negative`, `neutral` or `positive` (AJGT: `negative` or `positive`) |
-| optional | `dialect` and `sarcasm` (ArSarcasm), `source` (ASTD/CAMelSent) |
-
-## The three datasets
-
-| Dataset | Used as in [1] | How to get it | Expected sizes ([1], Table A.1) |
+| Dataset | Source | File and checksum | Used as |
 |---|---|---|---|
-| **ArSarcasm-Sent** | 3-class sentiment, official train/test | `python scripts/prepare_data.py arsarcasm` downloads it from the Hugging Face Hub (`iabufarha/ar_sarcasm`, MIT licence). You can also pass the CSVs from the authors' GitHub repository with `--source csv --train-file ... --test-file ...` | 8,437 / 2,110 |
-| **AJGT** | 2-class, 80/20 split | `python scripts/prepare_data.py ajgt` (Hub: `komari6/ajgt_twitter_ar`), or `--source xlsx --train-file AJGT.xlsx` | 1,440 / 360 here (1.4K / 361 in [1]; the exact split of [1] is not public, see DEPARTURES D7) |
-| **ASTD (3-class)** | trained on **CAMelSent**: the train and dev data of ArSAS, ASTD, SemEval-2017 and ArSenTD-LEV merged; tested on the held-out ASTD test set. This is **not** ASTD-B | Build per-source files (see below), then run `python scripts/prepare_data.py astd --manifest data/camelsent_sources.yaml` | about 24.8K / 664 |
+| ArSarcasm-Sent | github.com/iabufarha/ArSarcasm (also `iabufarha/ar_sarcasm` on the Hugging Face Hub) | official train/test CSVs, `sentiment` column | 8,437 / 2,110, official split |
+| AJGT | github.com/komari6/Arabic-twitter-corpus-AJGT | `AJGT.xlsx`, 1,800 tweets | stratified 80/20 split, seed 42: 1,440 / 360 |
+| AJGT, authors' split (check runs) | github.com/UBC-NLP/marbert, `examples/UBC_AJGT_final_shuffled_{train,test}.tsv` | | 1,440 / 360 |
+| ASTD | github.com/mahmoudnabil/ASTD | `Tweets.txt` + `4class-unbalanced-{train,validation,test}.txt` | test: official test split, objective tweets dropped (661) |
+| ArSAS | homepages.inf.ed.ac.uk/wmagdy/resources.htm | `ArSAS.txt`, 21,064 tweets, MD5 `7fc39a33ba3aa3bde15a5bcaae1cc3f2` | CAMelSent source (stratified 90%, Mixed dropped) |
+| SemEval-2017 Task 4A Arabic | SemEval-2017 Task 4 release | GOLD train file, MD5 `f3115252f25e53b952991929d263b5e5` | CAMelSent source (train file already contains all dev tweets) |
+| ArSenTD-LEV | github.com/aub-mind/hULMonA, `data/ArSenTD-LEV.tsv` (original link dead) | MD5 `38ade7d93f0ed8f6f4dc4cf9706326bc` | CAMelSent source (stratified 90%) |
 
-### Building CAMelSent (Member 1, data audit)
+## Rebuilding the data
 
-[1] takes CAMelSent from Obeid et al. (2020). No ready-made merged file is distributed, so we rebuild it from the four sources. CAMeL Lab's CAMeLBERT repository (`github.com/CAMeL-Lab/CAMeLBERT`) documents their sentiment preprocessing and is the closest public reference.
+1. **ASTD training corpus (CAMelSent)**, Member 2:
+   ```
+   python scripts/build_camelsent.py --astd_dir ASTD/data --arsas ArSAS.txt \
+       --semeval_train SemEval2017-task4-train.subtask-A.arabic.txt --arsentd ArSenTD-LEV.tsv --out data
+   ```
+   This writes `astd/train.csv` (27,394 tweets), `astd/test.csv` (661) and a count report; the report from the reported runs is `env/camelsent_build_report.json`.
+2. **Shared split files**, Member 1: `python scripts/make_team_splits.py <folder with the train/test CSVs> <out>` adds IDs and lower-case labels, and draws the grouped stratified 10% dev sets (seed 42; copies of a tweet stay on one side).
+3. **Check**: compare the MD5 checksums of the resulting files with `MANIFEST.json`, or the IDs with `splits/`.
 
-1. Obtain each source's official splits and save them as TSV files with a text column and a label column under `data/raw/camelsent/`. Use one file per source and split (train, dev, and the ASTD test).
-2. Copy `camelsent_sources.example.yaml` to `camelsent_sources.yaml` and fill in the paths, column names and the label mapping. Labels outside negative/neutral/positive (ASTD `OBJ`, mixed) map to `null` and are dropped. The counts are logged in `MANIFEST.json`.
-3. Run `python scripts/prepare_data.py astd`. The script warns if the ASTD test set does not contain 664 items.
-4. Run `python scripts/data_audit.py`. It reports duplicates, label conflicts and the overlap between the ASTD test set and every training source **before** results are interpreted. Record any difference from [1] in `docs/DEPARTURES.md`.
+The data audit itself (label mappings, counts, duplicates, cross-source overlap) is `notebooks/member1_data_audit.ipynb`. The findings are summarised in `docs/DEPARTURES.md`, rows 13–22.

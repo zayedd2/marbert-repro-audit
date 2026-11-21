@@ -1,0 +1,40 @@
+{
+  "protocol": "historical: full training set, best epoch selected on TEST (as in [1])",
+  "dataset": "arsarcasm",
+  "model_key": "arabert",
+  "model_id": "aubmindlab/bert-base-arabertv01",
+  "model_revision": "01f6b7d2d17afcd0f79498f26f47dfc6207b56ea",
+  "seed": 44,
+  "labels": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "n_train": 8437,
+  "n_test": 2110,
+  "train_md5": "76ca4544302f959aa8eef23cdfcc8fc1",
+  "test_md5": "bc0a22ea05303c682e806eac14056b4c",
+  "hp": {
+    "lr": 2e-06,
+    "batch_size": 32,
+    "max_len": 256,
+    "epochs": 25,
+    "weight_decay": 0.0,
+    "optimizer": "Adam (torch.optim.Adam)",
+    "scheduler": "constant (unreported in [1]; assumption)",
+    "warmup": 0
+  },
+  "epochs": 25,
+  "use_amp": true,
+  "preprocessing": {
+    "replace_user": true,
+    "replace_url": true
+  },
+  "dynamic_padding": true,
+  "max_train": null,
+  "gpu": "NVIDIA L4, 580.82.07, 23034 MiB",
+  "torch": "2.14.1+cu130",
+  "transformers": "5.22.1",
+  "started": "2026-11-19 08:53:25",
+  "finished": "2026-11-19 09:04:37"
+}

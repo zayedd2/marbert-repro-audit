@@ -1,0 +1,11 @@
+dialect,model,n,macro_F1_mean,macro_F1_sd,F1_PN_mean,accuracy_mean,note
+egypt,AraBERT,479,68.77,0.43,70.69,71.75,
+egypt,MARBERT,479,73.25,1.78,76.34,75.23,
+gulf,AraBERT,105,57.49,2.24,60.66,57.78,
+gulf,MARBERT,105,65.1,2.92,70.5,64.76,
+levant,AraBERT,112,55.83,3.03,60.56,60.12,
+levant,MARBERT,112,61.42,2.46,66.89,64.88,
+magreb,AraBERT,4,60.74,10.26,46.67,91.67,small group: exploratory
+magreb,MARBERT,4,50.0,9.62,44.44,66.67,small group: exploratory
+msa,AraBERT,1410,71.58,0.25,65.94,76.83,
+msa,MARBERT,1410,73.48,0.26,68.3,78.49,

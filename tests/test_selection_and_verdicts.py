@@ -15,7 +15,7 @@ def test_ties_go_to_earliest_epoch():
 def _runs(values):
     rows = []
     for (d, m), vals in values.items():
-        for s, v in zip([42, 1234, 2026], vals):
+        for s, v in zip([42, 43, 44], vals):
             rows.append({"protocol": "historical", "dataset": d, "model": m, "seed": s, "test_hist": v, "selected_epoch": 10})
     return pd.DataFrame(rows)
 

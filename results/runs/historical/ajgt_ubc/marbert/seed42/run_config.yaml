@@ -1,0 +1,37 @@
+protocol: historical
+dataset: ajgt_ubc
+model: marbert
+seed: 42
+backend: team-colab
+protocol_description: 'historical: full training set, best epoch selected on TEST
+  (as in [1])'
+labels:
+- negative
+- positive
+selection:
+  split: test
+  metric: historical
+model_id: UBC-NLP/MARBERT
+model_revision: 88e1fa192dd723cf0b3563500aec46209762eb22
+training:
+  lr: 2.0e-06
+  batch_size: 32
+  max_len: 256
+  epochs: 25
+  weight_decay: 0.0
+  optimizer: Adam (torch.optim.Adam)
+  scheduler: constant (unreported in [1]; assumption)
+  warmup: 0
+  fp16: true
+  dynamic_padding: true
+variant: null
+preprocessing:
+  replace_user: true
+  replace_url: true
+n_items:
+  train: 1440
+  test: 360
+data_md5:
+  train: 8bc1e023f2503b609c3f4ce85bc7a150
+  test: 02117e9a69aa6526eda3db30b7985acb
+source_folder: historical/ajgt_ubc/marbert/seed42

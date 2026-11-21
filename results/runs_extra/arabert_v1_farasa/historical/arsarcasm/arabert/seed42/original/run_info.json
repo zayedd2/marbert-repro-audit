@@ -1,0 +1,18 @@
+{
+  "tag": "arabert_v1_farasa",
+  "protocol": "historical",
+  "dataset": "arsarcasm",
+  "model_key": "arabert",
+  "model_id": "aubmindlab/bert-base-arabert",
+  "model_revision": "470dc2a368cce42412068cf568d7728fd3869c53",
+  "seed": 42,
+  "lr": 2e-06,
+  "schedule": "constant",
+  "warmup": 0.0,
+  "text_fn": "arabert:bert-base-arabert",
+  "challenge": false,
+  "n_train": 8437,
+  "epochs": 25,
+  "gpu": "NVIDIA L4, 580.82.07, 23034 MiB",
+  "started": "2026-11-20 11:24:21"
+}

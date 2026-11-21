@@ -1,0 +1,18 @@
+{
+  "tag": "sched_linear_warmup",
+  "protocol": "historical",
+  "dataset": "arsarcasm",
+  "model_key": "marbert",
+  "model_id": "UBC-NLP/MARBERT",
+  "model_revision": "88e1fa192dd723cf0b3563500aec46209762eb22",
+  "seed": 42,
+  "lr": 2e-06,
+  "schedule": "linear_warmup",
+  "warmup": 0.1,
+  "text_fn": "ours (section 3)",
+  "challenge": false,
+  "n_train": 8437,
+  "epochs": 25,
+  "gpu": "NVIDIA L4, 580.82.07, 23034 MiB",
+  "started": "2026-11-20 11:47:45"
+}

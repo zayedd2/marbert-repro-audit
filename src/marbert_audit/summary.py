@@ -16,7 +16,7 @@ import pandas as pd
 
 from .config import DATASET_ORDER, MODEL_ORDER, PROTOCOL_ORDER, labels_for, pos_neg_idx
 from .metrics import confusion_matrix, per_class
-from .stats import load_predictions, paired_bootstrap, seed_summary
+from .stats import bootstrap_indices, load_predictions, paired_bootstrap, seed_summary
 
 
 def metric_pair(cfg: dict, dataset: str) -> list[str]:
@@ -34,10 +34,10 @@ def _subset(runs: pd.DataFrame, **kw) -> pd.DataFrame:
 
 
 # ------------------------------------------------------------------------------ RQ1
-def reproduction_table(runs: pd.DataFrame, cfg: dict) -> pd.DataFrame:
+def reproduction_table(runs: pd.DataFrame, cfg: dict, datasets: list[str] | None = None) -> pd.DataFrame:
     thr = float(cfg["reproduction"]["gap_threshold_pp"])
     rows = []
-    for d in DATASET_ORDER:
+    for d in datasets or DATASET_ORDER:
         dcfg = cfg["datasets"][d]
         means = {}
         for m in MODEL_ORDER:
@@ -107,7 +107,8 @@ def checkpoint_table(runs: pd.DataFrame, cfg: dict) -> pd.DataFrame:
 # ------------------------------------------------------------------------------ RQ3 + RQ4
 def margins_table(runs: pd.DataFrame, cfg: dict, results_root: Path | str) -> pd.DataFrame:
     bcfg = cfg["bootstrap"]
-    rows = []
+    rng = np.random.default_rng(int(bcfg["seed"]))  # ONE generator, drawn in table order (as in the team's notebook)
+    rows, per_seed_rows = [], []
     for p in PROTOCOL_ORDER:
         for d in DATASET_ORDER:
             labels = labels_for(cfg, d)
@@ -125,6 +126,7 @@ def margins_table(runs: pd.DataFrame, cfg: dict, results_root: Path | str) -> pd
                     for df in lst:
                         if not (df["id"].equals(ref["id"]) and np.array_equal(df["gold"], ref["gold"])):
                             raise ValueError(f"test items differ between runs for {p}/{d}; cannot pair")
+            idx = bootstrap_indices(rng, len(ref), int(bcfg["n_resamples"])) if seeds else None
             for kind, metric in zip(("hist", "macro"), metric_pair(cfg, d)):
                 row = {"protocol": p, "dataset": d, "dataset_name": cfg["datasets"][d]["display_name"],
                        "metric_kind": kind, "metric": metric, "n_pairs": len(seeds)}
@@ -134,8 +136,14 @@ def margins_table(runs: pd.DataFrame, cfg: dict, results_root: Path | str) -> pd
                     boot = paired_bootstrap(
                         ref["gold"].to_numpy(), [x["pred"].to_numpy() for x in preds["marbert"]],
                         [x["pred"].to_numpy() for x in preds["arabert"]], len(labels), pos, neg, metric,
-                        n_resamples=int(bcfg["n_resamples"]), seed=int(bcfg["seed"]),
-                        confidence=float(bcfg["confidence"]), chunk_size=int(bcfg.get("chunk_size", 500)))
+                        confidence=float(bcfg["confidence"]), idx=idx)
+                    for s_, pt, (lo_, hi_), pnb in zip(seeds, boot["per_seed_point"], boot["per_seed_ci"], boot["per_seed_p_not_better"]):
+                        per_seed_rows.append({"protocol": p, "dataset": d, "metric": metric, "seed": str(s_), "observed_diff": pt,
+                                              "ci_low": lo_, "ci_high": hi_, "p_marbert_not_better": pnb,
+                                              "excludes_zero": bool(lo_ > 0 or hi_ < 0)})
+                    per_seed_rows.append({"protocol": p, "dataset": d, "metric": metric, "seed": "mean", "observed_diff": boot["point"],
+                                          "ci_low": boot["ci_low"], "ci_high": boot["ci_high"], "p_marbert_not_better": 1 - boot["p_gt0"],
+                                          "excludes_zero": bool(boot["ci_low"] > 0 or boot["ci_high"] < 0)})
                     row.update({
                         "marbert_mean": float(a.loc[seeds, f"test_{metric}"].mean()),
                         "arabert_mean": float(b.loc[seeds, f"test_{metric}"].mean()),
@@ -157,6 +165,7 @@ def margins_table(runs: pd.DataFrame, cfg: dict, results_root: Path | str) -> pd
             r = g["ranking"].dropna().tolist()
             flips[(p, d)] = (len(r) == 2 and r[0] != r[1]) if len(r) == 2 else None
         df["ranking_changes_with_metric"] = [flips.get((p, d)) for p, d in zip(df["protocol"], df["dataset"])]
+    df.attrs["per_seed"] = pd.DataFrame(per_seed_rows)
     return df
 
 
@@ -182,3 +191,87 @@ def per_class_table(runs: pd.DataFrame, cfg: dict, protocol: str = "independent"
                     row[f"{key}_mean"], row[f"{key}_sd"] = s["mean"], s["sd"]
                 rows.append(row)
     return pd.DataFrame(rows)
+
+
+# ------------------------------------------------------------------------------ extra checks
+def selection_rule_table(runs: pd.DataFrame, cfg: dict) -> pd.DataFrame:
+    """Independent runs: test score (published metric) when the epoch is chosen on dev with the published metric
+    (what was run) vs on dev macro-F1 (what the proposal said), plus the best test epoch of the same runs."""
+    rows = []
+    for d in DATASET_ORDER:
+        for m in MODEL_ORDER:
+            sub = _subset(runs, protocol="independent", dataset=d, model=m)
+            if sub.empty:
+                continue
+            a, b, best = seed_summary(sub["test_hist"]), seed_summary(sub["robust_test_hist"]), seed_summary(sub["max_test_hist"])
+            rows.append({"dataset": d, "dataset_name": cfg["datasets"][d]["display_name"], "model": m,
+                         "model_name": cfg["models"][m]["display_name"], "metric": cfg["datasets"][d]["historical_metric"],
+                         "dev_paper_metric_mean": a["mean"], "dev_paper_metric_sd": a["sd"],
+                         "dev_macro_f1_mean": b["mean"], "dev_macro_f1_sd": b["sd"],
+                         "max_abs_change_per_run": float((sub["robust_test_hist"] - sub["test_hist"]).abs().max()),
+                         "best_on_test_mean": best["mean"],
+                         "epochs_dev_paper_metric": ", ".join(str(int(e)) for e in sub["selected_epoch"]),
+                         "epochs_dev_macro_f1": ", ".join(str(int(e)) for e in sub["robust_selected_epoch"])})
+    return pd.DataFrame(rows)
+
+
+def lead_by_selection_table(runs: pd.DataFrame, cfg: dict) -> pd.DataFrame:
+    """MARBERT's lead in the same independent runs under dev selection vs best-on-test selection."""
+    rows = []
+    for d in DATASET_ORDER:
+        a = _subset(runs, protocol="independent", dataset=d, model="marbert")
+        b = _subset(runs, protocol="independent", dataset=d, model="arabert")
+        if a.empty or b.empty:
+            continue
+        dev = a["test_hist"].mean() - b["test_hist"].mean()
+        best = a["max_test_hist"].mean() - b["max_test_hist"].mean()
+        rows.append({"dataset": d, "dataset_name": cfg["datasets"][d]["display_name"],
+                     "metric": cfg["datasets"][d]["historical_metric"], "lead_dev_selected": dev,
+                     "lead_best_on_test": best, "lead_gained_by_test_selection": best - dev})
+    return pd.DataFrame(rows)
+
+
+def best_minus_last_table(runs: pd.DataFrame, cfg: dict) -> pd.DataFrame:
+    """Historical runs: best test epoch minus the last epoch (epoch 25), published metric."""
+    rows = []
+    for d in DATASET_ORDER:
+        for m in MODEL_ORDER:
+            sub = _subset(runs, protocol="historical", dataset=d, model=m)
+            if sub.empty:
+                continue
+            diff = sub["test_hist"] - sub["last_test_hist"]
+            s = seed_summary(diff)
+            rows.append({"dataset": d, "model": m, "metric": cfg["datasets"][d]["historical_metric"],
+                         "best_minus_last_mean": s["mean"], "best_minus_last_min": s["min"], "best_minus_last_max": s["max"]})
+    return pd.DataFrame(rows)
+
+
+def sensitivity_table(extra_runs: pd.DataFrame, main_runs: pd.DataFrame, cfg: dict) -> pd.DataFrame:
+    """Single-seed follow-up runs (ArSarcasm-Sent, historical protocol) against the matching main run."""
+    labels = {"arabert_v01_official_prep": "AraBERT v0.1, AraBERT's official preprocessing",
+              "arabert_v1_farasa": "AraBERT v1 with Farasa segmentation",
+              "lr_2e-5": "Constant LR 2e-5 (10x)", "sched_linear_warmup": "Linear decay + 10% warm-up, LR 2e-6"}
+    rows = []
+    if extra_runs.empty:
+        return pd.DataFrame(rows)
+    for _, r in extra_runs.iterrows():
+        variant = Path(r["run_dir"]).parts[-5]
+        main = _subset(main_runs, protocol="historical", dataset=r["dataset"], model=r["model"], seed=r["seed"])
+        base = float(main["test_hist"].iloc[0]) if not main.empty else np.nan
+        rows.append({"variant": variant, "description": labels.get(variant, variant), "dataset": r["dataset"],
+                     "model": r["model"], "seed": int(r["seed"]), "metric": r["hist_metric"],
+                     "score": r["test_hist"], "best_epoch": int(r["selected_epoch"]),
+                     "main_run_score": base, "change_vs_main": r["test_hist"] - base,
+                     "vs_published": r["test_hist"] - cfg["datasets"][r["dataset"]]["published"][r["model"]]})
+    return pd.DataFrame(rows).sort_values(["variant", "model"]).reset_index(drop=True)
+
+
+def compute_table(runs: pd.DataFrame) -> pd.DataFrame:
+    """GPU time per protocol and dataset (sum of logged epoch times)."""
+    if runs.empty:
+        return pd.DataFrame()
+    g = runs.groupby(["protocol", "dataset"], observed=True)["train_seconds"].sum().div(3600).rename("gpu_hours").reset_index()
+    total = pd.DataFrame([{"protocol": "all", "dataset": "all", "gpu_hours": runs["train_seconds"].sum() / 3600}])
+    by_d = runs.groupby("dataset", observed=True)["train_seconds"].sum().div(3600).rename("gpu_hours").reset_index()
+    by_d.insert(0, "protocol", "both")
+    return pd.concat([g, by_d, total], ignore_index=True)

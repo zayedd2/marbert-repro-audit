@@ -61,8 +61,9 @@ def _name(cfg, d):
 # ------------------------------------------------------------------------------ RQ1
 def fig_reproduction(repro: pd.DataFrame, runs: pd.DataFrame, cfg: dict, out_dir: Path, synthetic=False):
     _style()
-    fig, axes = plt.subplots(1, 3, figsize=(SINGLE_COL, 1.6))
-    for ax, d in zip(axes, DATASET_ORDER):
+    ds_list = list(dict.fromkeys(repro["dataset"].astype(str)))
+    fig, axes = plt.subplots(1, len(ds_list), figsize=(min(DOUBLE_COL, 1.35 * len(ds_list)), 1.7))
+    for ax, d in zip(np.atleast_1d(axes), ds_list):
         g = repro[repro["dataset"] == d].set_index("model")
         for i, m in enumerate(MODEL_ORDER):
             sub = runs[(runs["protocol"].astype(str) == "historical") & (runs["dataset"].astype(str) == d) & (runs["model"].astype(str) == m)]
@@ -85,7 +86,7 @@ def fig_reproduction(repro: pd.DataFrame, runs: pd.DataFrame, cfg: dict, out_dir
     handles += [plt.Line2D([], [], color=INK2, linewidth=1.6, label="mean of our seeds"),
                 plt.Line2D([], [], marker="D", markerfacecolor="none", markeredgecolor=INK, linestyle="", markersize=4,
                            label="published [1]")]
-    fig.legend(handles=handles, loc="upper center", ncol=2, frameon=False, bbox_to_anchor=(0.5, 1.16), columnspacing=1.0)
+    fig.legend(handles=handles, loc="upper center", ncol=4, frameon=False, bbox_to_anchor=(0.5, 1.1), columnspacing=1.0)
     fig.tight_layout(w_pad=0.6)
     _save(fig, out_dir, "fig_reproduction", synthetic)
 
@@ -111,19 +112,20 @@ def fig_learning_curves(runs: pd.DataFrame, cfg: dict, out_dir: Path, synthetic=
             g = ep[(ep["dataset"] == d) & (ep["model"] == m)]
             if g.empty:
                 continue
+            metric = cfg["datasets"][d]["historical_metric"]
             for split, ls, lw in (("test", "-", 1.6), ("dev", "--", 1.1)):
-                agg = g.groupby("epoch")[f"{split}_macro_f1"].agg(["mean", "min", "max"])
+                agg = g.groupby("epoch")[f"{split}_{metric}"].agg(["mean", "min", "max"])
                 ax.plot(agg.index, agg["mean"], linestyle=ls, linewidth=lw, color=COLORS[m])
                 if split == "test":
                     ax.fill_between(agg.index, agg["min"], agg["max"], color=COLORS[m], alpha=0.15, linewidth=0)
             sel = runs[(runs["protocol"].astype(str) == "independent") & (runs["dataset"].astype(str) == d) & (runs["model"].astype(str) == m)]
-            ax.scatter(sel["selected_epoch"], sel["test_macro_f1"], marker=MARKERS[m], s=16, color=COLORS[m],
+            ax.scatter(sel["selected_epoch"], sel["test_hist"], marker=MARKERS[m], s=16, color=COLORS[m],
                        edgecolor="white", linewidth=0.6, zorder=4)
         ax.set_title(_name(cfg, d), pad=3)
         ax.set_xlabel("epoch")
+        ax.set_ylabel(METRIC_LABELS[cfg["datasets"][d]["historical_metric"]], labelpad=1)
         ax.set_xlim(0.5, cfg["training"]["epochs"] + 0.5)
         _grid(ax)
-    axes[0].set_ylabel("macro-F1")
     handles = [plt.Line2D([], [], color=COLORS[m], marker=MARKERS[m], markersize=3.5, linewidth=1.6,
                           label=cfg["models"][m]["display_name"]) for m in MODEL_ORDER]
     handles += [plt.Line2D([], [], color=INK2, linewidth=1.6, label="test (mean, band = seed range)"),
@@ -139,27 +141,23 @@ def fig_checkpoint_gap(runs: pd.DataFrame, cfg: dict, out_dir: Path, synthetic=F
     ind = runs[runs["protocol"].astype(str) == "independent"]
     if ind.empty:
         return
-    fig, axes = plt.subplots(1, 2, figsize=(SINGLE_COL, 1.7), sharey=True)
-    for ax, kind in zip(axes, ("hist", "macro_f1")):
-        for i, d in enumerate(DATASET_ORDER):
-            metric = cfg["datasets"][d]["historical_metric"] if kind == "hist" else "macro_f1"
-            for j, m in enumerate(MODEL_ORDER):
-                sub = ind[(ind["dataset"].astype(str) == d) & (ind["model"].astype(str) == m)]
-                vals = sub[f"ckpt_gap_{metric}"].to_numpy()
-                x = i + (j - 0.5) * 0.34
-                if vals.size:
-                    ax.scatter(np.full(vals.size, x), vals, s=12, marker=MARKERS[m], color=COLORS[m], edgecolor="white", linewidth=0.5, zorder=3)
-                    ax.hlines(vals.mean(), x - 0.13, x + 0.13, color=COLORS[m], linewidth=1.6, zorder=2)
-        ax.set_xticks(range(3), [_name(cfg, d) for d in DATASET_ORDER])
-        ax.set_title("published metric" if kind == "hist" else "macro-F1", pad=3)
-        ax.axhline(0, color=INK2, linewidth=0.6)
-        _grid(ax)
-    axes[0].set_ylabel("optimism gap (pp)")
+    fig, ax = plt.subplots(figsize=(SINGLE_COL, 1.7))
+    for i, d in enumerate(DATASET_ORDER):
+        for j, m in enumerate(MODEL_ORDER):
+            vals = ind[(ind["dataset"].astype(str) == d) & (ind["model"].astype(str) == m)]["ckpt_gap_hist"].to_numpy()
+            x = i + (j - 0.5) * 0.34
+            if vals.size:
+                ax.scatter(np.full(vals.size, x), vals, s=12, marker=MARKERS[m], color=COLORS[m], edgecolor="white", linewidth=0.5, zorder=3)
+                ax.hlines(vals.mean(), x - 0.13, x + 0.13, color=COLORS[m], linewidth=1.6, zorder=2)
+    ax.set_xticks(range(3), [f"{_name(cfg, d)}\n({METRIC_LABELS[cfg['datasets'][d]['historical_metric']]})" for d in DATASET_ORDER])
+    ax.axhline(0, color=INK2, linewidth=0.6)
+    ax.set_ylabel("optimism (pp)")
+    _grid(ax)
     handles = [plt.Line2D([], [], color=COLORS[m], marker=MARKERS[m], linestyle="", markersize=3.5,
                           label=cfg["models"][m]["display_name"]) for m in MODEL_ORDER]
     handles.append(plt.Line2D([], [], color=INK2, linewidth=1.6, label="mean of seeds"))
     fig.legend(handles=handles, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 1.07))
-    fig.tight_layout(w_pad=0.5)
+    fig.tight_layout()
     _save(fig, out_dir, "fig_checkpoint_gap", synthetic)
 
 

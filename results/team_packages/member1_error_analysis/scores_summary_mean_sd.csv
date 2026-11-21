@@ -1,0 +1,13 @@
+dataset,protocol,model,accuracy_mean,accuracy_std,macro_F1_mean,macro_F1_std,F1_PN_mean,F1_PN_std
+ajgt,historical,AraBERT,88.89,0.73,88.88,0.73,,
+ajgt,historical,MARBERT,94.35,0.32,94.35,0.32,,
+ajgt,independent,AraBERT,88.06,1.11,88.06,1.11,,
+ajgt,independent,MARBERT,93.52,0.32,93.52,0.32,,
+arsarcasm,historical,AraBERT,74.39,0.85,71.29,0.57,67.86,0.31
+arsarcasm,historical,MARBERT,76.98,0.63,74.81,0.61,72.42,0.66
+arsarcasm,independent,AraBERT,73.87,0.28,70.54,0.37,66.75,0.68
+arsarcasm,independent,MARBERT,76.32,0.81,73.66,0.38,70.8,0.28
+astd,historical,AraBERT,67.57,0.61,61.54,2.21,75.83,0.17
+astd,historical,MARBERT,72.62,0.4,68.25,0.96,80.9,0.55
+astd,independent,AraBERT,67.68,0.23,61.61,1.6,75.55,0.49
+astd,independent,MARBERT,70.75,0.98,64.49,2.11,79.85,1.19

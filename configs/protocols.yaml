@@ -1,16 +1,18 @@
 historical:
   display_name: Historical
   description: >
-    The paper's protocol (audit item 1). Train on the full training set, score the test set after every epoch,
-    and report the best test epoch under the published metric. This uses test data for selection, so it is
-    reported only as a labelled comparison with [1].
+    Audit item 1 (Member 2). The paper's protocol: train on the full training set, score the test set after
+    every epoch, report the best test epoch under the published metric.
   use_dev_split: false
   selection: {split: test, metric: historical}
 
 independent:
   display_name: Independent
   description: >
-    Main result (audit item 2). Hold out a stratified 10% dev subset of the training set, choose the checkpoint
-    on dev macro-F1 only, and report the test score of that checkpoint. Test data are never used for selection.
+    Audit items 2-5 (Member 3), main result. Train on 90% of the training set, choose the epoch with the best
+    DEV score under the published metric (F1-PN; accuracy for AJGT), report the test score at that epoch.
+    The proposal said dev macro-F1; re-selecting on dev macro-F1 changes test scores by at most 0.4 points
+    (see results/tables/selection_rule_check.csv).
   use_dev_split: true
-  selection: {split: dev, metric: macro_f1}
+  selection: {split: dev, metric: historical}
+  robustness_selection: {split: dev, metric: macro_f1}

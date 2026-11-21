@@ -1,0 +1,39 @@
+{
+  "protocol": "historical: full training set, best epoch selected on TEST (as in [1])",
+  "dataset": "ajgt_ubc",
+  "model_key": "marbert",
+  "model_id": "UBC-NLP/MARBERT",
+  "model_revision": "88e1fa192dd723cf0b3563500aec46209762eb22",
+  "seed": 42,
+  "labels": [
+    "negative",
+    "positive"
+  ],
+  "n_train": 1440,
+  "n_test": 360,
+  "train_md5": "8bc1e023f2503b609c3f4ce85bc7a150",
+  "test_md5": "02117e9a69aa6526eda3db30b7985acb",
+  "hp": {
+    "lr": 2e-06,
+    "batch_size": 32,
+    "max_len": 256,
+    "epochs": 25,
+    "weight_decay": 0.0,
+    "optimizer": "Adam (torch.optim.Adam)",
+    "scheduler": "constant (unreported in [1]; assumption)",
+    "warmup": 0
+  },
+  "epochs": 25,
+  "use_amp": true,
+  "preprocessing": {
+    "replace_user": true,
+    "replace_url": true
+  },
+  "dynamic_padding": true,
+  "max_train": null,
+  "gpu": "NVIDIA L4, 580.82.07, 23034 MiB",
+  "torch": "2.14.1+cu130",
+  "transformers": "5.22.1",
+  "started": "2026-11-20 13:40:25",
+  "finished": "2026-11-20 13:45:41"
+}
