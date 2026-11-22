@@ -115,6 +115,18 @@ tests/              metrics vs scikit-learn, bootstrap, selection and verdict ru
 * **Same statistics as the team**: the paired bootstrap uses the team's procedure and generator (B = 1,000, seed 12345; subgroups B = 2,000, seed 2026), so every interval regenerates exactly.
 * **Synthetic runs stay separate**: the smoke test writes only to `results_synthetic/`, watermarks its outputs and is refused inside `results/`.
 
+## Member 4 deliverables
+
+What the proposal assigns to Member 4, and where each item is:
+
+| Deliverable (proposal) | Where | How to check it |
+|---|---|---|
+| Public repository: code, configs, seeds, package versions, saved predictions, README, run scripts | this repository: `configs/`, `env/`, `results/runs/`, `notebooks/`, `scripts/` | `python -m pytest -q` (16 tests, also run on GitHub for every push) |
+| Every table and figure regenerable | `scripts/make_report_assets.py` → `results/tables/`, `results/figures/`, `report/generated/` | run it; the cross-check table at the end must show every row as a match |
+| Integrity of the saved results | `scripts/import_team_runs.py`, `scripts/verify_results.py`, `results/MANIFEST.sha256` | `python scripts/verify_results.py` re-scores all 1,650 prediction sets |
+| Experiments and Results section | `report/experiments_results.tex` + `report/appendix_results.tex`; numbers from `report/generated/numbers.tex` | `cd report && latexmk -pdf preview.tex` |
+| Reviewer of Member 1 (error analysis) | subgroup intervals in `results/tables/subgroup_bootstrap_ci.csv`, confusion matrices in `results/tables/confusion_matrices.csv` | compare with `results/team_packages/member1_error_analysis/` |
+
 ## Team
 
 | Member | Responsibility | Report section |
