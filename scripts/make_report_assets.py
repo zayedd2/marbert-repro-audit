@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 from pathlib import Path
 
@@ -141,6 +142,9 @@ def main():
                   "per_class": per_cls, "subgroups": subgroups, "subgroup_bootstrap_ci": subgroup_ci,
                   "sensitivity_runs": sens, "confusion_matrices": errors.confusion_long(cms, cfg)}
     for name, df in out_tables.items():
+        if "run_dir" in df.columns:  # write paths relative to the repository, not the machine they were built on
+            df = df.copy()
+            df["run_dir"] = [os.path.relpath(Path(p).resolve(), REPO_ROOT.resolve()) for p in df["run_dir"]]
         df.to_csv(tables / f"{name}.csv", index=False)
     cc = crosscheck({"reproduction": repro, "independent": indep, "runs": runs, "per_seed_boot": per_seed_boot,
                      "subgroup_ci": subgroup_ci}, TEAM) if default_root else pd.DataFrame()
